@@ -117,38 +117,40 @@
                                 <i class="fas fa-eye text-success"></i>
                             </div>
 
-                            <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="text-decoration-none">
-                                <?php if (!empty($product['is_new'])): ?>
-                                    <span class="nnp-new-badge">Hàng mới về</span>
-                                <?php endif; ?>
+                            <?php if (!empty($product['is_new'])): ?>
+                                <span class="nnp-new-badge">Hàng mới về</span>
+                            <?php endif; ?>
 
-                                <div class="card-body p-2 text-center">
-                                    <small class="text-muted d-block" style="font-size: 0.7rem;">
-                                        <?php echo htmlspecialchars(isset($product['supplier']) ? $product['supplier'] : 'N/A'); ?>
-                                    </small>
-                                    <small class="text-success fw-bold d-block mb-2" style="font-size: 0.7rem;">SẢN PHẨM CHÍNH HÃNG</small>
-                                    
-                                    <div class="product-image-container quick-view-trigger" style="cursor: pointer;">
-                                        <img src="<?php echo BASE_URL . '/' . htmlspecialchars(isset($product['thumbnail']) ? $product['thumbnail'] : 'https://via.placeholder.com/150?text=No+Image'); ?>"
-                                             class="img-fluid product-main-img"
-                                             alt="<?php echo htmlspecialchars($product['name']); ?>">
-                                        <img src="<?php echo BASE_URL . '/' . htmlspecialchars(!empty($product['image_hover']) ? $product['image_hover'] : (isset($product['thumbnail']) ? $product['thumbnail'] : 'https://via.placeholder.com/150?text=No+Image')); ?>"
-                                             class="img-fluid product-hover-img"
-                                             alt="<?php echo htmlspecialchars($product['name']); ?> - Ảnh 2">
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-around mb-2">
-                                        <i class="fas fa-microchip text-success" title="Miễn phí tư vấn"></i>
-                                        <i class="fas fa-certificate text-success" title="Đảm bảo chất lượng"></i>
-                                        <i class="fas fa-seedling text-success" title="Dễ sử dụng"></i>
-                                    </div>
-
-                                    <p class="card-text mb-1" style="font-size: 0.85rem;"><?php echo htmlspecialchars($product['name']); ?></p>
-                                    <span class="text-danger fw-bold d-block"><?php echo number_format($product['price'], 0, ',', '.'); ?>₫</span>
+                            <div class="card-body p-2 text-center">
+                                <small class="text-muted d-block" style="font-size: 0.7rem;">
+                                    <?php echo htmlspecialchars(isset($product['supplier']) ? $product['supplier'] : 'N/A'); ?>
+                                </small>
+                                <small class="text-success fw-bold d-block mb-2" style="font-size: 0.7rem;">SẢN PHẨM CHÍNH HÃNG</small>
+                                
+                                <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
+                                    <img src="<?php echo BASE_URL . '/' . htmlspecialchars(isset($product['thumbnail']) ? $product['thumbnail'] : 'https://via.placeholder.com/150?text=No+Image'); ?>"
+                                         class="img-fluid product-main-img"
+                                         alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                    <img src="<?php echo BASE_URL . '/' . htmlspecialchars(!empty($product['image_hover']) ? $product['image_hover'] : (isset($product['thumbnail']) ? $product['thumbnail'] : 'https://via.placeholder.com/150?text=No+Image')); ?>"
+                                         class="img-fluid product-hover-img"
+                                         alt="<?php echo htmlspecialchars($product['name']); ?> - Ảnh 2">
+                                </a>
+                                
+                                <div class="d-flex justify-content-around mb-2">
+                                    <i class="fas fa-microchip text-success" title="Miễn phí tư vấn"></i>
+                                    <i class="fas fa-certificate text-success" title="Đảm bảo chất lượng"></i>
+                                    <i class="fas fa-seedling text-success" title="Dễ sử dụng"></i>
                                 </div>
-                            </a>
+
+                                <p class="card-text mb-1" style="font-size: 0.85rem;">
+                                    <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
+                                        <?php echo htmlspecialchars($product['name']); ?>
+                                    </a>
+                                </p>
+                                <span class="text-danger fw-bold d-block"><?php echo number_format($product['price'], 0, ',', '.'); ?>₫</span>
+                            </div>
                             <div class="card-footer bg-white border-0 text-center p-2">
-                                <button class="btn btn-success w-100 rounded-pill btn-sm fw-bold" onclick="addToCart(<?php echo $product['id']; ?>)">
+                                <button class="btn btn-success w-100 rounded-pill btn-sm fw-bold ajax-add-to-cart-btn" data-product-id="<?php echo $product['id']; ?>">
                                     <i class="fas fa-cart-plus me-1"></i> MUA NGAY
                                 </button>
                             </div>
@@ -210,87 +212,5 @@
         </div>
     </div>
     
-    <script>
-    // 1. Hàm thêm vào giỏ hàng ngay lập tức
-    function addToCart(productId) {
-            const formData = new FormData();
-            formData.append('action', 'add');
-            formData.append('id', productId);
-            formData.append('quantity', 1);
-            formData.append('is_ajax', '1'); // ADD THIS LINE    
-            fetch('<?= BASE_URL; ?>/app/api/cart_actions.php', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-  
-                if (typeof refreshCartDisplay === 'function') {
-                    refreshCartDisplay();
-                } else {
-                    console.warn('refreshCartDisplay function not found. Please ensure header.php is loaded correctly.');
-                    window.location.reload(); // Fallback in case function is not defined
-                }
-            } else {
-                alert('Có lỗi xảy ra, vui lòng thử lại.');
-            }
-        })
-        .catch(error => {
-            console.error('Error adding to cart:', error);
-            alert('Có lỗi xảy ra trong quá trình thêm sản phẩm vào giỏ hàng.');
-        });
-    }
-    
-    // 2. Hàm mở Modal và đổ dữ liệu thật (Sửa lỗi dữ liệu giả)
-    function openQuickView(product) {
-        const modal = document.getElementById('quickViewModal');
-        
-        // Đổ tên, giá, mã SP
-        modal.querySelector('h2').innerText = product.name;
-        modal.querySelector('.fs-3').innerText = new Intl.NumberFormat('vi-VN').format(product.price) + '₫';
-        modal.querySelector('.product-meta small').innerText = 'Mã sản phẩm: ' + (product.sku || 'Đang cập nhật');
-        
-        // Đổ ảnh chính
-        const mainImg = modal.querySelector('.product-image img');
-        mainImg.src = '<?= BASE_URL; ?>/' + product.thumbnail;
-        
-        // Gán ID vào nút "Thêm vào giỏ" trong Modal
-        const modalAddBtn = modal.querySelector('#quickViewAddToCartForm button[type="submit"]'); // Target the submit button in the form
-        if (modalAddBtn) {
-            modalAddBtn.onclick = function() { // Attach onclick to the button
-                const quantity = modal.querySelector('#quickViewQuantity').value;
-                addToCart(product.id, quantity);
-            };
-        }
-        
-        // Set product_id for the hidden input in the form
-        modal.querySelector('#quickViewProductId').value = product.id;
-    
-        // Show modal
-        var myModal = new bootstrap.Modal(modal);
-        myModal.show();
-    }
-    
-    // Ensure the quickViewModal in footer.php is also aware of the local addToCart
-    document.addEventListener('DOMContentLoaded', function() {
-        const quickViewFormInFooter = document.getElementById('quickViewAddToCartForm');
-        if (quickViewFormInFooter) {
-            quickViewFormInFooter.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const productId = document.getElementById('quickViewProductId').value;
-                const quantity = document.getElementById('quickViewQuantity').value;
-                // Use the local addToCart function
-                addToCart(productId, quantity);
-                // Hide the modal
-                const quickViewModal = bootstrap.Modal.getInstance(document.getElementById('quickViewModal'));
-                if (quickViewModal) {
-                    quickViewModal.hide();
-                }
-            });
-        }
-    });
-    </script>
+
 

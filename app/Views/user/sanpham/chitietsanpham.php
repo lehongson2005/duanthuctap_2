@@ -1,9 +1,10 @@
 <?php
-include_once '../../../../app/config/db.php';
-include_once '../../../../app/models/ProductModel.php';
-include_once '../../../../app/models/CategoryModel.php';
-include_once '../../../../app/models/CategoryLevel2Model.php';
-include_once '../../../../app/models/CategoryLevel3Model.php';
+include_once '../header.php'; // This likely defines BASE_URL and starts the session
+include_once __DIR__ . '/../../../config/db.php';
+include_once __DIR__ . '/../../../models/ProductModel.php';
+include_once __DIR__ . '/../../../models/CategoryModel.php';
+include_once __DIR__ . '/../../../models/CategoryLevel2Model.php';
+include_once __DIR__ . '/../../../models/CategoryLevel3Model.php';
 
 $productModel = new ProductModel($conn);
 $categoryModel = new CategoryModel($conn);
@@ -320,7 +321,7 @@ if ($product['category_level3_id']) {
 </head>
 <body>
 
-<?php include '../header.php'; ?>
+
 
 <div class="container my-5">
     
@@ -360,10 +361,7 @@ if ($product['category_level3_id']) {
         </div>
 
         <div class="col-lg-4 mb-4 product-info">
-            <form action="<?php echo BASE_URL; ?>/app/api/cart_actions.php" method="POST">
-                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                <input type="hidden" name="action" value="add">
-
+            <div id="add-to-cart-container">
                 <h1 class="mb-2"><?php echo htmlspecialchars($product['name']); ?></h1>
                 <p class="small text-muted mb-3">Mã sản phẩm: <span class="fw-bold text-dark"><?php echo htmlspecialchars($product['sku']); ?></span></p>
     
@@ -385,11 +383,14 @@ if ($product['category_level3_id']) {
                     </div>
                 </div>
     
+                <!-- Add to cart notification placeholder -->
+                <div id="add-to-cart-alert" class="alert" role="alert" style="display: none; padding: 0.5rem 1rem; margin-top: 1rem;"></div>
+
                 <div class="d-grid gap-2">
-                    <button type="submit" name="buy_now" class="btn btn-buy-now"><i class="fas fa-shopping-cart"></i> MUA NGAY</button>
-                    <button type="submit" name="add_to_cart" class="btn btn-add-to-cart btn-outline-success">THÊM VÀO GIỎ</button>
+                    <button type="button" id="buy-now-btn" data-product-id="<?php echo $product['id']; ?>" class="btn btn-buy-now"><i class="fas fa-shopping-cart"></i> MUA NGAY</button>
+                    <button type="button" id="add-to-cart-btn" data-product-id="<?php echo $product['id']; ?>" class="btn btn-add-to-cart btn-outline-success">THÊM VÀO GIỎ</button>
                 </div>
-            </form>
+            </div>
 
             <div class="row gx-2 mt-3">
                 <div class="col-6 d-grid">
@@ -460,44 +461,67 @@ if ($product['category_level3_id']) {
         </div>
     </div>
 </div>
+
+
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Quantity adjustment
-        const quantityInput = document.getElementById('quantity-input');
-        const quantityMinus = document.getElementById('quantity-minus');
-        const quantityPlus = document.getElementById('quantity-plus');
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if the necessary elements exist
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const buyNowBtn = document.getElementById('buy-now-btn');
+    const quantityInput = document.getElementById('quantity-input');
+    const quantityPlus = document.getElementById('quantity-plus');
+    const quantityMinus = document.getElementById('quantity-minus');
 
-        if (quantityInput && quantityMinus && quantityPlus) {
-            quantityMinus.addEventListener('click', function() {
-                let currentVal = parseInt(quantityInput.value);
-                if (currentVal > 1) {
-                    quantityInput.value = currentVal - 1;
-                }
-            });
+    if (quantityPlus && quantityMinus && quantityInput) {
+        quantityPlus.addEventListener('click', () => {
+            quantityInput.value = parseInt(quantityInput.value, 10) + 1;
+        });
 
-            quantityPlus.addEventListener('click', function() {
-                let currentVal = parseInt(quantityInput.value);
-                quantityInput.value = currentVal + 1;
-            });
-        }
-        
-        // Image gallery functionality
-        const mainImage = document.querySelector('.main-image');
-        const thumbnailList = document.querySelector('.thumbnail-list');
+        quantityMinus.addEventListener('click', () => {
+            let currentValue = parseInt(quantityInput.value, 10);
+            if (currentValue > 1) {
+                quantityInput.value = currentValue - 1;
+            }
+        });
+    }
 
-        if (mainImage && thumbnailList) {
-            thumbnailList.addEventListener('click', function(e) {
-                if (e.target.tagName === 'IMG' && !e.target.classList.contains('active-thumb')) {
-                    const currentActive = thumbnailList.querySelector('.active-thumb');
-                    if (currentActive) {
-                        currentActive.classList.remove('active-thumb');
-                    }
-                    e.target.classList.add('active-thumb');
-                    mainImage.src = e.target.src;
-                }
-            });
-        }
-    });
+    // Add to Cart button handler
+    if (addToCartBtn && quantityInput) {
+        addToCartBtn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const quantity = quantityInput.value;
+            
+            // Assuming window.handleAddToCart is defined globally (in footer.php)
+            if (window.handleAddToCart) {
+                window.handleAddToCart(productId, quantity);
+            } else {
+                console.error('handleAddToCart function is not defined.');
+                alert('Có lỗi xảy ra, không thể thêm vào giỏ hàng!');
+            }
+        });
+    }
+
+    // Buy Now button handler
+    if (buyNowBtn && quantityInput) {
+        buyNowBtn.addEventListener('click', async function() {
+            const productId = this.dataset.productId;
+            const quantity = quantityInput.value;
+            
+            if (window.handleAddToCart) {
+                // Add the item to cart and wait for the action to complete
+                await window.handleAddToCart(productId, quantity);
+                
+                // Redirect to the cart page
+                // Assuming BASE_URL is defined and available
+                window.location.href = `<?php echo rtrim(BASE_URL, '/'); ?>/giohang`;
+            } else {
+                console.error('handleAddToCart function is not defined.');
+                alert('Có lỗi xảy ra, không thể thực hiện mua ngay!');
+            }
+        });
+    }
+});
 </script>
 
 <?php include '../footer.php'; ?>

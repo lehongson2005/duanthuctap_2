@@ -57,6 +57,15 @@
 </style>
 
 <section id="kichre-section" class="mt-4 container">
+    <div id="add-to-cart-toast" class="toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 1100">
+        <div class="d-flex">
+            <div class="toast-body">
+                Sản phẩm đã được thêm vào giỏ hàng!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="fw-bold mb-0" style="color: #238E46;">KÍCH RỄ</h3>
         <a href="<?= BASE_URL; ?>/danhmuc.php?id=1" class="btn btn-outline-success btn-sm rounded-pill px-3">
@@ -79,28 +88,24 @@
                         </div>
 
                         <div class="card-body p-2 text-center quick-view-trigger" 
-     style="cursor: pointer;"
-     data-id="<?= $product['id']; ?>"
-     data-name="<?= htmlspecialchars($product['name']); ?>"
-     data-price="<?= $product['price']; ?>"
-     data-sku="<?= htmlspecialchars($product['sku'] ?? 'N/A'); ?>"
-     data-img="<?= BASE_URL . '/' . ($product['thumbnail'] ?? 'public/uploads/default.png'); ?>">
+                             style="cursor: pointer;"
+                             onclick="window.location.href='<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>'">
     
-    <small class="text-muted d-block" style="font-size: 0.7rem;">
-        <?= htmlspecialchars($product['supplier'] ?? 'Nông Nghiệp Phố'); ?>
-    </small>
-    
-                                <div class="product-image-container" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>); event.preventDefault(); event.stopPropagation();">
-                                    <img src="<?= BASE_URL . '/' . ($product['thumbnail'] ?? 'public/uploads/default.png'); ?>" class="product-main-img">
-                                    <img src="<?= BASE_URL . '/' . ($product['image_hover'] ?? $product['thumbnail']); ?>" class="product-hover-img">
-                                </div>
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">
+                                <?= htmlspecialchars($product['supplier'] ?? 'Nông Nghiệp Phố'); ?>
+                            </small>
+                            
+                            <div class="product-image-container">
+                                <img src="<?= BASE_URL . '/' . ($product['thumbnail'] ?? 'public/uploads/default.png'); ?>" class="product-main-img">
+                                <img src="<?= BASE_URL . '/' . ($product['image_hover'] ?? $product['thumbnail']); ?>" class="product-hover-img">
+                            </div>
 
-    <p class="product-name-limit fw-bold mb-1"><?= htmlspecialchars($product['name']); ?></p>
-    <span class="text-danger fw-bold d-block"><?= number_format($product['price'], 0, ',', '.'); ?>₫</span>
-</div>
+                            <p class="product-name-limit fw-bold mb-1"><?= htmlspecialchars($product['name']); ?></p>
+                            <span class="text-danger fw-bold d-block"><?= number_format($product['price'], 0, ',', '.'); ?>₫</span>
+                        </div>
 
                         <div class="card-footer bg-white border-0 pb-3">
-                            <button class="btn btn-success w-100 rounded-pill btn-sm fw-bold" onclick="addToCart(<?= $product['id']; ?>, 1)">
+                            <button class="btn btn-success w-100 rounded-pill btn-sm fw-bold ajax-add-to-cart-btn" data-product-id="<?= $product['id']; ?>">
                                 <i class="fas fa-cart-plus me-1"></i> MUA NGAY
                             </button>
                         </div>
@@ -148,58 +153,3 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-// Hàm mở Modal xem nhanh
-function openQuickView(product) {
-    // 1. Tìm element Modal
-    const modalElement = document.getElementById('quickViewModal');
-    
-    if (!modalElement) {
-        console.error("Lỗi: Không tìm thấy HTML của Modal 'quickViewModal'. Hãy đảm bảo bạn đã copy đoạn <div class='modal'> vào file.");
-        return;
-    }
-
-    // 2. Đổ dữ liệu vào Modal (Dùng đúng ID trong HTML bạn đã gửi)
-    document.getElementById('quickViewName').innerText = product.name;
-    document.getElementById('quickViewPrice').innerText = new Intl.NumberFormat('vi-VN').format(product.price) + '₫';
-    document.getElementById('quickViewSku').innerText = product.sku || 'N/A';
-    document.getElementById('quickViewImage').src = '<?= BASE_URL; ?>/' + (product.thumbnail || 'public/uploads/default.png');
-    document.getElementById('quickViewProductId').value = product.id;
-    document.getElementById('quickViewQuantity').value = 1;
-
-    // 3. Kích hoạt Modal bằng Bootstrap
-    let myModal = bootstrap.Modal.getInstance(modalElement); // Kiểm tra nếu đã khởi tạo
-    if (!myModal) {
-        myModal = new bootstrap.Modal(modalElement); // Nếu chưa thì tạo mới
-    }
-    myModal.show();
-}
-
-// Hàm thay đổi số lượng (+/-)
-function changeQty(val) {
-    const input = document.getElementById('quickViewQuantity');
-    let current = parseInt(input.value) || 1;
-    if (current + val >= 1) input.value = current + val;
-}
-
-// Đảm bảo Form trong Modal hoạt động
-document.addEventListener('DOMContentLoaded', function() {
-    const qvForm = document.getElementById('quickViewAddToCartForm');
-    if (qvForm) {
-        qvForm.onsubmit = function(e) {
-            e.preventDefault();
-            const pId = document.getElementById('quickViewProductId').value;
-            const pQty = document.getElementById('quickViewQuantity').value;
-            
-            // Gọi hàm addToCart (Phải đảm bảo hàm này đã được định nghĩa)
-            if (typeof addToCart === 'function') {
-                addToCart(pId, pQty);
-                const inst = bootstrap.Modal.getInstance(document.getElementById('quickViewModal'));
-                if (inst) inst.hide();
-            }
-        };
-    }
-});
-</script>

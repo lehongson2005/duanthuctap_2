@@ -1,7 +1,9 @@
 <?php
-// C:\xampp1\htdocs\DuAnThucTap_2\app\Views\user\taikhoan\taikhoan.php
+
 include "../../../config/db.php";
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['user_id'])) {
     header("Location: " . BASE_URL . "/app/Views/admin/index.php");
     exit;

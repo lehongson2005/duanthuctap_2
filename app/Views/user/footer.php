@@ -502,18 +502,20 @@ if ($db_path !== false && file_exists($db_path)) {
 </div>
 
 <!-- Toast Container for Notifications -->
-<div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+<div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1200">
     <!-- Toasts will be appended here by JavaScript -->
 </div>
 
 <script id="main-app-script">
 document.addEventListener('DOMContentLoaded', function () {
-    const quickViewModal = new bootstrap.Modal(document.getElementById('quickViewModal'));
+    const quickViewModalEl = document.getElementById('quickViewModal');
+    const quickViewModal = quickViewModalEl ? new bootstrap.Modal(quickViewModalEl) : null;
     const toastContainer = document.getElementById('toast-container');
     const base_url = '<?php echo BASE_URL; ?>';
 
-    // Function to show a toast notification
-    function showToast(message, isSuccess = true) {
+    // GLOBAL: Function to show a toast notification
+    window.showToast = function(message, isSuccess = true) {
+        if (!toastContainer) return;
         const toastId = 'toast-' + Date.now();
         const toastHTML = `
             <div id="${toastId}" class="toast align-items-center text-white ${isSuccess ? 'bg-success' : 'bg-danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -532,12 +534,13 @@ document.addEventListener('DOMContentLoaded', function () {
         toastElement.addEventListener('hidden.bs.toast', () => toastElement.remove());
     }
 
-    // Function to update header cart count
-    async function updateHeaderCart() {
+    // GLOBAL: Function to update header cart display
+    window.updateHeaderCart = async function() {
         try {
-            const response = await fetch(base_url + '/app/api/get_cart_data.php');
+            const response = await fetch(base_url + '/app/api/cart_actions.php?action=get_cart_data');
+            if (!response.ok) return;
             const data = await response.json();
-
+            
             document.querySelectorAll('.cart-badge').forEach(badge => {
                 if (data.item_count > 0) {
                     badge.innerText = data.item_count;
@@ -546,19 +549,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     badge.style.display = 'none';
                 }
             });
-            // You can also update the mini-cart total price if you add an element with a specific ID for it.
-            const miniCartTotal = document.querySelector('.mini-cart-total span:last-child');
-             if(miniCartTotal) {
-                miniCartTotal.innerText = data.total_price_formatted;
-             }
-
         } catch (error) {
             console.error('Error updating header cart:', error);
         }
     }
 
-    // Function to handle adding item to cart via AJAX
-    async function addToCart(productId, quantity = 1) {
+    // GLOBAL: Function to handle adding item to cart
+    window.handleAddToCart = async function(productId, quantity = 1) {
         const formData = new FormData();
         formData.append('action', 'add');
         formData.append('product_id', productId);
@@ -570,11 +567,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: formData
             });
 
-            if (response.ok) {
-                showToast('Thêm sản phẩm thành công!');
+            const result = await response.json();
+            showToast(result.message || 'Đã xử lý giỏ hàng.', result.success);
+
+            if (result.success) {
                 updateHeaderCart();
-            } else {
-                throw new Error('Failed to add to cart');
             }
         } catch (error) {
             showToast('Có lỗi xảy ra, vui lòng thử lại.', false);
@@ -582,25 +579,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- EVENT LISTENERS ---
+    // GLOBAL: Function to open quick view
+     window.openQuickView = function(product) {
+        if (!quickViewModalEl) return;
+        
+        const modal = $(quickViewModalEl);
+        modal.find('#quickViewName').text(product.name);
+        modal.find('#quickViewSku').text(product.sku || 'N/A');
+        modal.find('#quickViewPrice').text(new Intl.NumberFormat('vi-VN').format(product.price) + '₫');
+        modal.find('#quickViewImage').attr('src', base_url + '/' + (product.thumbnail || 'public/uploads/default.png'));
+        modal.find('#quickViewProductId').val(product.id);
+        modal.find('#quickViewQuantity').val(1);
+        
+        quickViewModal.show();
+    }
 
-    // 1. Listen for clicks to open Quick View Modal
+
+    // --- GLOBAL EVENT LISTENERS ---
+
+    // 1. Listen for clicks on ANY "add to cart" button
     document.body.addEventListener('click', function(e) {
-        const quickViewTrigger = e.target.closest('.quick-view-trigger');
-        if (quickViewTrigger) {
+        const directAddBtn = e.target.closest('.ajax-add-to-cart-btn');
+        if (directAddBtn) {
             e.preventDefault();
-            
-            const productCard = quickViewTrigger.closest('.product-card-data');
-            
-            // Populate modal
-            document.getElementById('quickViewName').innerText = productCard.dataset.name;
-            document.getElementById('quickViewSku').innerText = productCard.dataset.sku;
-            document.getElementById('quickViewPrice').innerText = productCard.dataset.priceFormatted;
-            document.getElementById('quickViewImage').src = base_url + '/' + productCard.dataset.image;
-            document.getElementById('quickViewProductId').value = productCard.dataset.id;
-            document.getElementById('quickViewQuantity').value = 1;
-
-            quickViewModal.show();
+            e.stopPropagation();
+            const productId = directAddBtn.dataset.productId;
+            handleAddToCart(productId, 1);
         }
     });
 
@@ -611,22 +615,13 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const productId = document.getElementById('quickViewProductId').value;
             const quantity = document.getElementById('quickViewQuantity').value;
-            addToCart(productId, quantity);
+            handleAddToCart(productId, quantity);
             quickViewModal.hide();
         });
     }
 
-    // 3. Listen for clicks on direct "Add to Cart" buttons on homepage
-    document.body.addEventListener('click', function(e) {
-        const directAddBtn = e.target.closest('.btn-add-to-cart-direct');
-        if (directAddBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            const productId = directAddBtn.dataset.productId;
-            addToCart(productId, 1);
-        }
-    });
-
+    // Initial cart update on page load
+    updateHeaderCart();
 });
 </script>
 </body>
