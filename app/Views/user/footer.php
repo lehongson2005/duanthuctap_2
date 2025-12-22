@@ -514,24 +514,43 @@ document.addEventListener('DOMContentLoaded', function () {
     const base_url = '<?php echo BASE_URL; ?>';
 
     // GLOBAL: Function to show a toast notification
+    // GLOBAL: Function to show a toast notification (Đã tối ưu để không hiện liên tục)
     window.showToast = function(message, isSuccess = true) {
         if (!toastContainer) return;
+
+        // 1. XÓA SẠCH các toast cũ đang có trong container để tránh chồng chất
+        toastContainer.innerHTML = ''; 
+
         const toastId = 'toast-' + Date.now();
         const toastHTML = `
             <div id="${toastId}" class="toast align-items-center text-white ${isSuccess ? 'bg-success' : 'bg-danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex">
                     <div class="toast-body">
+                        <i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
                         ${message}
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
             </div>
         `;
+
+        // 2. Chèn toast mới vào
         toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+        
         const toastElement = document.getElementById(toastId);
-        const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+        
+        // Cấu hình Toast: Tự động ẩn sau 2 giây (2000ms)
+        const toast = new bootstrap.Toast(toastElement, { 
+            delay: 2000,
+            autohide: true 
+        });
+        
         toast.show();
-        toastElement.addEventListener('hidden.bs.toast', () => toastElement.remove());
+
+        // 3. Xóa hẳn element khỏi DOM sau khi ẩn để nhẹ trang
+        toastElement.addEventListener('hidden.bs.toast', () => {
+            toastElement.remove();
+        });
     }
 
     // GLOBAL: Function to update header cart display
@@ -567,11 +586,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: formData
             });
 
-            const result = await response.json();
-            showToast(result.message || 'Đã xử lý giỏ hàng.', result.success);
+            // Kiểm tra response có OK không
+            if (!response.ok) {
+                showToast('Có lỗi xảy ra, vui lòng thử lại.', false);
+                return;
+            }
 
-            if (result.success) {
-                updateHeaderCart();
+            // Kiểm tra content-type để đảm bảo là JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                showToast('Có lỗi xảy ra, vui lòng thử lại.', false);
+                return;
+            }
+
+            const result = await response.json();
+            
+            // Đảm bảo result là object và có message
+            if (result && typeof result === 'object') {
+                const message = result.message || (result.success ? 'Sản phẩm đã được thêm vào giỏ hàng!' : 'Có lỗi xảy ra, vui lòng thử lại.');
+                showToast(message, result.success || false);
+
+                if (result.success) {
+                    updateHeaderCart();
+                    // Gọi refreshCartDisplay nếu có (từ header.php)
+                    if (typeof refreshCartDisplay === 'function') {
+                        refreshCartDisplay();
+                    }
+                }
+            } else {
+                showToast('Có lỗi xảy ra, vui lòng thử lại.', false);
             }
         } catch (error) {
             showToast('Có lỗi xảy ra, vui lòng thử lại.', false);

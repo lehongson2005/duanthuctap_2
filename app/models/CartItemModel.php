@@ -56,5 +56,14 @@ class CartItemModel {
         $stmt->bind_param("i", $cart_item_id);
         return $stmt->execute();
     }
+
+    // Hàm đếm tổng số lượng sản phẩm trong giỏ hàng (tổng quantity của tất cả items)
+    public function getItemCountByCartId($cart_id) {
+        $stmt = $this->conn->prepare("SELECT SUM(quantity) as total FROM {$this->table} WHERE cart_id = ?");
+        $stmt->bind_param("i", $cart_id);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        return $result['total'] ?? 0; // Trả về 0 nếu không có sản phẩm nào
+    }
 }
 ?>

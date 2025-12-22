@@ -9,27 +9,73 @@ include_once $baseDir . '/../../models/CategoryLevel3Model.php';
 include_once $baseDir . '/../../models/ProductModel.php';
 
 // --- Fetch Cart Data for Header ---
+// QUAN TRỌNG: Đồng bộ dữ liệu từ database vào session nếu user đã đăng nhập
 $cart_item_count = 0;
 $cart_total_price = 0;
 $cart_products = [];
-if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
-    $productModel_for_cart = new ProductModel($conn);
-    foreach ($_SESSION['cart'] as $product_id => $quantity) {
-        $cart_product_item = $productModel_for_cart->getById($product_id);
-        if ($cart_product_item) {
-            $price = (isset($cart_product_item['discount_price']) && $cart_product_item['discount_price'] > 0) ? $cart_product_item['discount_price'] : $cart_product_item['price'];
-            $cart_products[] = [
-                'id' => $cart_product_item['id'],
-                'name' => $cart_product_item['name'],
-                'thumbnail' => $cart_product_item['thumbnail'],
-                'quantity' => $quantity,
-                'price' => $price,
-                'sub_total' => $price * $quantity
-            ];
-            $cart_total_price += $price * $quantity;
+
+// Kiểm tra nếu user đã đăng nhập - đọc từ database và đồng bộ vào session
+if (isset($_SESSION['user_id'])) {
+    include_once __DIR__ . '/../../models/CartModel.php';
+    include_once __DIR__ . '/../../models/CartItemModel.php';
+    
+    $userId = $_SESSION['user_id'];
+    $cartModel = new CartModel($conn);
+    $cartItemModel = new CartItemModel($conn);
+    
+    // Lấy giỏ hàng của user từ database
+    $cart = $cartModel->getOrCreateActiveCartByUserId($userId);
+    if ($cart) {
+        $cartId = $cart['id'];
+        $items_result = $cartItemModel->getItemsByCartId($cartId);
+        
+        // Đồng bộ dữ liệu từ database vào session
+        $_SESSION['cart'] = [];
+        if ($items_result) {
+            $productModel_for_cart = new ProductModel($conn);
+            while ($item = $items_result->fetch_assoc()) {
+                // Lưu vào session
+                $_SESSION['cart'][$item['product_id']] = $item['quantity'];
+                
+                // Lấy thông tin sản phẩm đầy đủ
+                $cart_product_item = $productModel_for_cart->getById($item['product_id']);
+                if ($cart_product_item) {
+                    $price = $item['price']; // Dùng price từ cart_items (đã lưu khi thêm vào giỏ)
+                    $cart_products[] = [
+                        'id' => $cart_product_item['id'],
+                        'name' => $cart_product_item['name'],
+                        'thumbnail' => $cart_product_item['thumbnail'],
+                        'quantity' => $item['quantity'],
+                        'price' => $price,
+                        'sub_total' => $price * $item['quantity']
+                    ];
+                    $cart_total_price += $price * $item['quantity'];
+                }
+            }
+            $cart_item_count = $cartItemModel->getItemCountByCartId($cartId);
         }
     }
-    $cart_item_count = count($cart_products);
+} else {
+    // User chưa đăng nhập - đọc từ session
+    if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+        $productModel_for_cart = new ProductModel($conn);
+        foreach ($_SESSION['cart'] as $product_id => $quantity) {
+            $cart_product_item = $productModel_for_cart->getById($product_id);
+            if ($cart_product_item) {
+                $price = (isset($cart_product_item['discount_price']) && $cart_product_item['discount_price'] > 0) ? $cart_product_item['discount_price'] : $cart_product_item['price'];
+                $cart_products[] = [
+                    'id' => $cart_product_item['id'],
+                    'name' => $cart_product_item['name'],
+                    'thumbnail' => $cart_product_item['thumbnail'],
+                    'quantity' => $quantity,
+                    'price' => $price,
+                    'sub_total' => $price * $quantity
+                ];
+                $cart_total_price += $price * $quantity;
+            }
+        }
+        $cart_item_count = count($cart_products);
+    }
 }
 
 // --- Original PHP logic continues below ---

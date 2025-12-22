@@ -9,12 +9,6 @@ if (session_status() === PHP_SESSION_NONE) {
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/../config/db.php';
-// ... (rest of the file is unchanged but will not be reached)
-
-
-header('Content-Type: application/json');
-
-require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../models/ProductModel.php';
 require_once __DIR__ . '/../models/CartModel.php';
 require_once __DIR__ . '/../models/CartItemModel.php';
@@ -47,6 +41,33 @@ if (isset($_SESSION['user_id'])) {
         exit;
     }
 
+    // Hàm đồng bộ dữ liệu từ database vào session
+    function syncCartFromDatabaseToSession($cartItemModel, $cartId) {
+        // Lấy tất cả items từ database
+        $items_result = $cartItemModel->getItemsByCartId($cartId);
+        $_SESSION['cart'] = []; // Reset session cart
+        
+        if ($items_result) {
+            while ($item = $items_result->fetch_assoc()) {
+                // Lưu vào session với format: product_id => quantity
+                $_SESSION['cart'][$item['product_id']] = $item['quantity'];
+            }
+        }
+    }
+    
+    // Hàm tìm cart_item_id từ product_id
+    function findCartItemIdByProductId($cartItemModel, $cartId, $productId) {
+        $items_result = $cartItemModel->getItemsByCartId($cartId);
+        if ($items_result) {
+            while ($item = $items_result->fetch_assoc()) {
+                if ($item['product_id'] == $productId) {
+                    return $item['id'];
+                }
+            }
+        }
+        return 0;
+    }
+
     switch ($action) {
         case 'add':
             $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
@@ -57,6 +78,8 @@ if (isset($_SESSION['user_id'])) {
                 if ($product) {
                     $price = (isset($product['discount_price']) && $product['discount_price'] > 0) ? $product['discount_price'] : $product['price'];
                     if ($cartItemModel->addOrUpdateItem($cartId, $productId, $quantity, $price)) {
+                        // Đồng bộ dữ liệu từ database vào session sau khi thêm thành công
+                        syncCartFromDatabaseToSession($cartItemModel, $cartId);
                         $response['success'] = true;
                         $response['message'] = 'Sản phẩm đã được thêm vào giỏ hàng!';
                     } else {
@@ -71,31 +94,106 @@ if (isset($_SESSION['user_id'])) {
             break;
 
         case 'update':
-            $cartItemId = isset($_POST['cart_item_id']) ? (int)$_POST['cart_item_id'] : 0;
-            $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 0;
-
-            if ($cartItemId > 0 && $quantity > 0) {
-                if ($cartItemModel->updateItemQuantity($cartItemId, $quantity)) {
+            // Xử lý update từ form giohang.php (có thể gửi quantities[product_id] và cart_item_ids[product_id])
+            if (isset($_POST['quantities']) && is_array($_POST['quantities'])) {
+                $updated = false;
+                $updateErrors = [];
+                
+                foreach ($_POST['quantities'] as $product_id => $quantity) {
+                    $product_id = (int)$product_id;
+                    $quantity = (int)$quantity;
+                    
+                    if ($quantity > 0) {
+                        // Tìm cart_item_id từ product_id hoặc dùng cart_item_id đã gửi
+                        $cartItemId = 0;
+                        if (isset($_POST['cart_item_ids'][$product_id])) {
+                            $cartItemId = (int)$_POST['cart_item_ids'][$product_id];
+                        } else {
+                            // Tìm cart_item_id từ product_id trong database
+                            $cartItemId = findCartItemIdByProductId($cartItemModel, $cartId, $product_id);
+                        }
+                        
+                        if ($cartItemId > 0) {
+                            if ($cartItemModel->updateItemQuantity($cartItemId, $quantity)) {
+                                $updated = true;
+                            } else {
+                                $updateErrors[] = "Không thể cập nhật sản phẩm ID: $product_id";
+                            }
+                        } else {
+                            $updateErrors[] = "Không tìm thấy sản phẩm ID: $product_id trong giỏ hàng";
+                        }
+                    } else {
+                        // Nếu số lượng <= 0, xóa sản phẩm khỏi giỏ hàng
+                        $cartItemId = findCartItemIdByProductId($cartItemModel, $cartId, $product_id);
+                        if ($cartItemId > 0) {
+                            if ($cartItemModel->removeItem($cartItemId)) {
+                                $updated = true;
+                            }
+                        }
+                    }
+                }
+                
+                if ($updated) {
+                    // Đồng bộ dữ liệu từ database vào session sau khi cập nhật thành công
+                    syncCartFromDatabaseToSession($cartItemModel, $cartId);
                     $response['success'] = true;
                     $response['message'] = 'Cập nhật số lượng thành công!';
+                    if (!empty($updateErrors)) {
+                        $response['message'] .= ' (Một số sản phẩm có thể không được cập nhật)';
+                    }
                 } else {
-                    $response['message'] = 'Không thể cập nhật số lượng.';
+                    $response['message'] = !empty($updateErrors) ? implode(', ', $updateErrors) : 'Không thể cập nhật số lượng.';
                 }
             } else {
-                $response['message'] = 'Dữ liệu không hợp lệ.';
+                // Xử lý update đơn lẻ (tương thích với cách cũ)
+                $cartItemId = isset($_POST['cart_item_id']) ? (int)$_POST['cart_item_id'] : 0;
+                $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 0;
+
+                if ($cartItemId > 0 && $quantity > 0) {
+                    if ($cartItemModel->updateItemQuantity($cartItemId, $quantity)) {
+                        // Đồng bộ dữ liệu từ database vào session sau khi cập nhật thành công
+                        syncCartFromDatabaseToSession($cartItemModel, $cartId);
+                        $response['success'] = true;
+                        $response['message'] = 'Cập nhật số lượng thành công!';
+                    } else {
+                        $response['message'] = 'Không thể cập nhật số lượng.';
+                    }
+                } else {
+                    $response['message'] = 'Dữ liệu không hợp lệ.';
+                }
             }
             break;
         
-case 'remove':
-            // Logic now consistently uses the session for logged-in users, matching the cart display.
+        case 'remove':
+            // Xóa từ database dựa trên product_id
             $productId = isset($_REQUEST['id']) ? (int)$_REQUEST['id'] : 0;
             
-            if ($productId > 0 && isset($_SESSION['cart'][$productId])) {
-                unset($_SESSION['cart'][$productId]);
-                $response['success'] = true;
-                $response['message'] = 'Đã xóa sản phẩm khỏi giỏ hàng.';
+            if ($productId > 0) {
+                // Tìm cart_item_id từ product_id
+                $items_result = $cartItemModel->getItemsByCartId($cartId);
+                $found = false;
+                if ($items_result) {
+                    while ($item = $items_result->fetch_assoc()) {
+                        if ($item['product_id'] == $productId) {
+                            // Xóa item từ database
+                            if ($cartItemModel->removeItem($item['id'])) {
+                                $found = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if ($found) {
+                    // Đồng bộ dữ liệu từ database vào session sau khi xóa thành công
+                    syncCartFromDatabaseToSession($cartItemModel, $cartId);
+                    $response['success'] = true;
+                    $response['message'] = 'Đã xóa sản phẩm khỏi giỏ hàng.';
+                } else {
+                    $response['message'] = 'Sản phẩm không có trong giỏ hàng hoặc ID không hợp lệ.';
+                }
             } else {
-                $response['message'] = 'Sản phẩm không có trong giỏ hàng hoặc ID không hợp lệ.';
+                $response['message'] = 'ID sản phẩm không hợp lệ.';
             }
             break;
         
@@ -165,23 +263,59 @@ case 'remove':
             break;
 
         case 'update':
-            // Note: For guest cart, we use product_id instead of cart_item_id
-            $productId = isset($_REQUEST['product_id']) ? (int)$_REQUEST['product_id'] : 0;
-            $quantity = isset($_REQUEST['quantity']) ? (int)$_REQUEST['quantity'] : 0;
-
-            if ($productId > 0 && isset($_SESSION['guest_cart'][$productId])) {
-                if ($quantity > 0) {
-                    $_SESSION['guest_cart'][$productId]['quantity'] = (int)$quantity;
+            // Xử lý update từ form giohang.php (có thể gửi quantities[product_id])
+            if (isset($_POST['quantities']) && is_array($_POST['quantities'])) {
+                $updated = false;
+                $updateErrors = [];
+                
+                foreach ($_POST['quantities'] as $product_id => $quantity) {
+                    $product_id = (int)$product_id;
+                    $quantity = (int)$quantity;
+                    
+                    if ($quantity > 0) {
+                        if (isset($_SESSION['guest_cart'][$product_id])) {
+                            $_SESSION['guest_cart'][$product_id]['quantity'] = $quantity;
+                            $updated = true;
+                        } else {
+                            $updateErrors[] = "Không tìm thấy sản phẩm ID: $product_id trong giỏ hàng";
+                        }
+                    } else {
+                        // Nếu số lượng <= 0, xóa sản phẩm
+                        if (isset($_SESSION['guest_cart'][$product_id])) {
+                            unset($_SESSION['guest_cart'][$product_id]);
+                            $updated = true;
+                        }
+                    }
+                }
+                
+                if ($updated) {
                     $response['success'] = true;
                     $response['message'] = 'Cập nhật số lượng thành công!';
+                    if (!empty($updateErrors)) {
+                        $response['message'] .= ' (Một số sản phẩm có thể không được cập nhật)';
+                    }
                 } else {
-                    // If quantity is 0 or less, remove the item
-                    unset($_SESSION['guest_cart'][$productId]);
-                    $response['success'] = true;
-                    $response['message'] = 'Đã xóa sản phẩm khỏi giỏ hàng.';
+                    $response['message'] = !empty($updateErrors) ? implode(', ', $updateErrors) : 'Không thể cập nhật số lượng.';
                 }
             } else {
-                $response['message'] = 'Sản phẩm không có trong giỏ hàng hoặc dữ liệu không hợp lệ.';
+                // Xử lý update đơn lẻ (tương thích với cách cũ)
+                $productId = isset($_REQUEST['product_id']) ? (int)$_REQUEST['product_id'] : 0;
+                $quantity = isset($_REQUEST['quantity']) ? (int)$_REQUEST['quantity'] : 0;
+
+                if ($productId > 0 && isset($_SESSION['guest_cart'][$productId])) {
+                    if ($quantity > 0) {
+                        $_SESSION['guest_cart'][$productId]['quantity'] = (int)$quantity;
+                        $response['success'] = true;
+                        $response['message'] = 'Cập nhật số lượng thành công!';
+                    } else {
+                        // If quantity is 0 or less, remove the item
+                        unset($_SESSION['guest_cart'][$productId]);
+                        $response['success'] = true;
+                        $response['message'] = 'Đã xóa sản phẩm khỏi giỏ hàng.';
+                    }
+                } else {
+                    $response['message'] = 'Sản phẩm không có trong giỏ hàng hoặc dữ liệu không hợp lệ.';
+                }
             }
             break;
 
