@@ -208,3 +208,46 @@ $all_categories = $categoryModel->getAll();
 <?php
 include_once '../templates/footer.php';
 ?>
+
+<script>
+$(document).ready(function() {
+    $('#content').summernote({
+        placeholder: 'Hãy nhập nội dung và chèn ảnh ở đây...',
+        tabsize: 2,
+        height: 300, // Độ cao của ô nhập
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'underline', 'clear']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'picture', 'video']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ],
+        callbacks: {
+            onImageUpload: function(files) {
+                var formData = new FormData();
+                formData.append('file', files[0]);
+                $.ajax({
+                    url: '<?php echo rtrim(BASE_URL, '/'); ?>/app/api/upload_post_image.php',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.url) {
+                            $('#content').summernote('insertImage', data.url);
+                        } else if (data.error) {
+                            alert('Lỗi tải ảnh: ' + data.error);
+                        }
+                    },
+                    error: function() {
+                        alert('Đã xảy ra lỗi không xác định khi tải ảnh lên.');
+                    }
+                });
+            }
+        }
+    });
+});
+</script>

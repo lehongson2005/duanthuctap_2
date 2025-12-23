@@ -16,15 +16,17 @@ class IconMenuModel {
 
     public function create($data) {
         $stmt = $this->conn->prepare("
-            INSERT INTO {$this->table} (title, slug, image, link, sort_order, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+            INSERT INTO {$this->table} (title, slug, image, link, link_type, link_target_id, sort_order, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         ");
         $stmt->bind_param(
-            "ssssis",
+            "sssssiis",
             $data['title'],
             $data['slug'],
             $data['image'],
             $data['link'],
+            $data['link_type'],
+            $data['link_target_id'],
             $data['sort_order'],
             $data['status']
         );
@@ -36,14 +38,18 @@ class IconMenuModel {
                     title = ?, 
                     slug = ?, 
                     link = ?, 
+                    link_type = ?,
+                    link_target_id = ?,
                     sort_order = ?, 
                     status = ?, 
                     updated_at = NOW()";
-        $types = "sssis";
+        $types = "ssssiis";
         $params = [
             $data['title'],
             $data['slug'],
             $data['link'],
+            $data['link_type'],
+            $data['link_target_id'],
             $data['sort_order'],
             $data['status']
         ];

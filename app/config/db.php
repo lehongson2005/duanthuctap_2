@@ -14,5 +14,7 @@ if ($conn->connect_error) {
     die('Kết nối thất bại: ' . $conn->connect_error);
 }
 mysqli_set_charset($conn, 'utf8mb4');
-define('BASE_URL', '/DuAnThucTap_2');
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/DuAnThucTap_2');
+}
 // define('GOOGLE_MAPS_API_KEY', '');

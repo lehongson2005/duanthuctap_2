@@ -27,25 +27,6 @@ $data['published_at'] = $data['published_at'] ? date('Y-m-d\TH:i', strtotime($da
 
 $errors = [];
 
-function handleUpload($file_input_name, $upload_dir) {
-    if (isset($_FILES[$file_input_name]) && $_FILES[$file_input_name]['error'] == 0) {
-        $filename = uniqid() . '-' . basename($_FILES[$file_input_name]['name']);
-        $target_path = $upload_dir . $filename;
-        if (move_uploaded_file($_FILES[$file_input_name]['tmp_name'], $target_path)) {
-            return 'public/uploads/camnang/' . $filename;
-        }
-    }
-    return null;
-}
-
-function createSlug($string) {
-    $search = ['#(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)#', '#(è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)#', '#(ì|í|ị|ỉ|ĩ)#', '#(ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ)#', '#(ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ)#', '#(ỳ|ý|ỵ|ỷ|ỹ)#', '#(đ)#', '#(À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ)#', '#(È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ)#', '#(Ì|Í|Ị|Ỉ|Ĩ)#', '#(Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ)#', '#(Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ)#', '#(Ỳ|Ý|Ỵ|Ỷ|Ỹ)#', '#(Đ)#', '/[^a-zA-Z0-9\-\_]/'];
-    $replace = ['a', 'e', 'i', 'o', 'u', 'y', 'd', 'A', 'E', 'I', 'O', 'U', 'Y', 'D', '-'];
-    $string = preg_replace($search, $replace, $string);
-    $string = preg_replace('/(-)+/', '-', $string);
-    return strtolower($string);
-}
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $original_data = $data;
     $data = array_merge($data, $_POST);
@@ -61,6 +42,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($data['category_id'])) $errors['category_id'] = "Danh mục là bắt buộc.";
 
     $upload_dir = '../../../../public/uploads/camnang/';
+    
+    function handleUpload($file_input_name, $upload_dir) {
+        if (isset($_FILES[$file_input_name]) && $_FILES[$file_input_name]['error'] == 0) {
+            $filename = uniqid() . '-' . basename($_FILES[$file_input_name]['name']);
+            $target_path = $upload_dir . $filename;
+            if (move_uploaded_file($_FILES[$file_input_name]['tmp_name'], $target_path)) {
+                return 'public/uploads/camnang/' . $filename;
+            }
+        }
+        return null;
+    }
+
     $new_thumbnail_path = handleUpload('thumbnail', $upload_dir);
     if ($new_thumbnail_path) {
         $data['thumbnail'] = $new_thumbnail_path;
@@ -82,6 +75,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $errors['db'] = "Lỗi: Không thể cập nhật bài viết.";
         }
     }
+}
+
+function createSlug($string) {
+    $search = ['#(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)#', '#(è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)#', '#(ì|í|ị|ỉ|ĩ)#', '#(ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ)#', '#(ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ)#', '#(ỳ|ý|ỵ|ỷ|ỹ)#', '#(đ)#', '#(À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ)#', '#(È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ)#', '#(Ì|Í|Ị|Ỉ|Ĩ)#', '#(Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ)#', '#(Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ)#', '#(Ỳ|Ý|Ỵ|Ỷ|Ỹ)#', '#(Đ)#', '/[^a-zA-Z0-9\-\_]/'];
+    $replace = ['a', 'e', 'i', 'o', 'u', 'y', 'd', 'A', 'E', 'I', 'O', 'U', 'Y', 'D', '-'];
+    $string = preg_replace($search, $replace, $string);
+    $string = preg_replace('/(-)+/', '-', $string);
+    return strtolower($string);
 }
 
 $page_title = "Chỉnh sửa Bài viết Cẩm nang";
@@ -117,7 +118,7 @@ $all_categories = $categoryModel->getAll();
                     </div>
                     <div class="mb-3">
                         <label for="content" class="form-label fw-bold">Nội dung</label>
-                        <textarea class="form-control" id="content" name="content" rows="10"><?php echo htmlspecialchars($data['content']); ?></textarea>
+                        <textarea class="form-control" id="content" name="content" rows="10"></textarea>
                     </div>
                 </div>
             </div>
@@ -188,3 +189,135 @@ $all_categories = $categoryModel->getAll();
 </form>
 
 <?php include_once '../templates/footer.php'; ?>
+
+<script>
+
+$(document).ready(function() {
+
+    // Initialize Summernote
+
+    $('#content').summernote({
+
+        placeholder: 'Hãy nhập nội dung và chèn ảnh ở đây...',
+
+        tabsize: 2,
+
+        height: 300,
+
+        toolbar: [
+
+          ['style', ['style']],
+
+          ['font', ['bold', 'underline', 'clear']],
+
+          ['color', ['color']],
+
+          ['para', ['ul', 'ol', 'paragraph']],
+
+          ['table', ['table']],
+
+          ['insert', ['link', 'picture', 'video']],
+
+          ['view', ['fullscreen', 'codeview', 'help']]
+
+        ],
+
+        callbacks: {
+
+            onImageUpload: function(files) {
+
+                var formData = new FormData();
+
+                formData.append('file', files[0]);
+
+                $.ajax({
+
+                    url: '<?php echo rtrim(BASE_URL, '/'); ?>/app/api/upload_post_image.php',
+
+                    type: 'POST',
+
+                    data: formData,
+
+                    contentType: false,
+
+                    processData: false,
+
+                    dataType: 'json',
+
+                    success: function(data) {
+
+                        if (data.url) {
+
+                            $('#content').summernote('insertImage', data.url);
+
+                        } else if (data.error) {
+
+                            alert('Lỗi tải ảnh: ' + data.error);
+
+                        }
+
+                    },
+
+                    error: function() {
+
+                        alert('Đã xảy ra lỗi không xác định khi tải ảnh lên.');
+
+                    }
+
+                });
+
+            }
+
+        }
+
+    });
+
+
+
+    // Get post ID from URL
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const postId = urlParams.get('id');
+
+
+
+    if (postId) {
+
+        // Asynchronously load content from the new API endpoint
+
+        $.getJSON(`<?php echo rtrim(BASE_URL, '/'); ?>/app/api/get_post_content.php?id=${postId}&type=cn_post`)
+
+            .done(function(data) {
+
+                if (data && data.content) {
+
+                    $('#content').summernote('code', data.content);
+
+                }
+
+            })
+
+            .fail(function(jqXHR, textStatus, errorThrown) {
+
+                console.error("Failed to load post content:", textStatus, errorThrown);
+
+                $('#content').summernote('code', '<p style="color: red;">Lỗi: Không thể tải nội dung bài viết.</p>');
+
+            });
+
+    }
+
+
+
+    // Sync content back to textarea on form submit
+
+    $('form').on('submit', function() {
+
+        $('#content').val($('#content').summernote('code'));
+
+    });
+
+});
+
+</script>

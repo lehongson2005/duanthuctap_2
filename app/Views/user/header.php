@@ -1,4 +1,14 @@
 <?php
+// Ensure session is started for all pages including this header
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// A simple, hardcoded BASE_URL is more robust for this environment.
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/DuAnThucTap_2');
+}
+
 // Include database and models
 $baseDir = __DIR__;
 include_once $baseDir . '/../../config/db.php';
@@ -9,73 +19,27 @@ include_once $baseDir . '/../../models/CategoryLevel3Model.php';
 include_once $baseDir . '/../../models/ProductModel.php';
 
 // --- Fetch Cart Data for Header ---
-// QUAN TRỌNG: Đồng bộ dữ liệu từ database vào session nếu user đã đăng nhập
 $cart_item_count = 0;
 $cart_total_price = 0;
 $cart_products = [];
-
-// Kiểm tra nếu user đã đăng nhập - đọc từ database và đồng bộ vào session
-if (isset($_SESSION['user_id'])) {
-    include_once __DIR__ . '/../../models/CartModel.php';
-    include_once __DIR__ . '/../../models/CartItemModel.php';
-    
-    $userId = $_SESSION['user_id'];
-    $cartModel = new CartModel($conn);
-    $cartItemModel = new CartItemModel($conn);
-    
-    // Lấy giỏ hàng của user từ database
-    $cart = $cartModel->getOrCreateActiveCartByUserId($userId);
-    if ($cart) {
-        $cartId = $cart['id'];
-        $items_result = $cartItemModel->getItemsByCartId($cartId);
-        
-        // Đồng bộ dữ liệu từ database vào session
-        $_SESSION['cart'] = [];
-        if ($items_result) {
-            $productModel_for_cart = new ProductModel($conn);
-            while ($item = $items_result->fetch_assoc()) {
-                // Lưu vào session
-                $_SESSION['cart'][$item['product_id']] = $item['quantity'];
-                
-                // Lấy thông tin sản phẩm đầy đủ
-                $cart_product_item = $productModel_for_cart->getById($item['product_id']);
-                if ($cart_product_item) {
-                    $price = $item['price']; // Dùng price từ cart_items (đã lưu khi thêm vào giỏ)
-                    $cart_products[] = [
-                        'id' => $cart_product_item['id'],
-                        'name' => $cart_product_item['name'],
-                        'thumbnail' => $cart_product_item['thumbnail'],
-                        'quantity' => $item['quantity'],
-                        'price' => $price,
-                        'sub_total' => $price * $item['quantity']
-                    ];
-                    $cart_total_price += $price * $item['quantity'];
-                }
-            }
-            $cart_item_count = $cartItemModel->getItemCountByCartId($cartId);
+if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+    $productModel_for_cart = new ProductModel($conn);
+    foreach ($_SESSION['cart'] as $product_id => $quantity) {
+        $cart_product_item = $productModel_for_cart->getById($product_id);
+        if ($cart_product_item) {
+            $price = (isset($cart_product_item['discount_price']) && $cart_product_item['discount_price'] > 0) ? $cart_product_item['discount_price'] : $cart_product_item['price'];
+            $cart_products[] = [
+                'id' => $cart_product_item['id'],
+                'name' => $cart_product_item['name'],
+                'thumbnail' => $cart_product_item['thumbnail'],
+                'quantity' => $quantity,
+                'price' => $price,
+                'sub_total' => $price * $quantity
+            ];
+            $cart_total_price += $price * $quantity;
         }
     }
-} else {
-    // User chưa đăng nhập - đọc từ session
-    if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
-        $productModel_for_cart = new ProductModel($conn);
-        foreach ($_SESSION['cart'] as $product_id => $quantity) {
-            $cart_product_item = $productModel_for_cart->getById($product_id);
-            if ($cart_product_item) {
-                $price = (isset($cart_product_item['discount_price']) && $cart_product_item['discount_price'] > 0) ? $cart_product_item['discount_price'] : $cart_product_item['price'];
-                $cart_products[] = [
-                    'id' => $cart_product_item['id'],
-                    'name' => $cart_product_item['name'],
-                    'thumbnail' => $cart_product_item['thumbnail'],
-                    'quantity' => $quantity,
-                    'price' => $price,
-                    'sub_total' => $price * $quantity
-                ];
-                $cart_total_price += $price * $quantity;
-            }
-        }
-        $cart_item_count = count($cart_products);
-    }
+    $cart_item_count = count($cart_products);
 }
 
 // --- Original PHP logic continues below ---
@@ -142,6 +106,28 @@ if (!empty($level1Categories)) {
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- Styles specific to detail pages (chitiettintuc.php, camnangchitiet.php) -->
+    <style>
+        :root { --primary-color: #238E46; --text-dark: #333; --border-light: #eee; }
+        body { background-color: #f8f9fa; }
+        .container { max-width: 1200px; }
+        .breadcrumb-item a { color: var(--primary-color) !important; }
+        .article-title { color: var(--primary-color); font-weight: 700; margin-bottom: 5px; }
+        .article-meta { font-size: 0.85rem; color: #6c757d; margin-bottom: 20px; border-bottom: 1px solid var(--border-light); padding-bottom: 10px; }
+        .toc-sidebar { position: sticky; top: 20px; padding: 20px; border: 1px solid var(--border-light); border-radius: 8px; background-color: white; margin-bottom: 20px; }
+        .toc-header { color: var(--primary-color); font-weight: bold; border-bottom: 2px solid var(--border-light); padding-bottom: 8px; margin-bottom: 10px; }
+        .article-content { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); }
+        .article-content h2, .article-content h3 { color: var(--primary-color); margin-top: 25px; padding-bottom: 5px; border-bottom: 1px dashed var(--border-light); }
+        .article-content p { line-height: 1.8; color: var(--text-dark); margin-bottom: 15px; }
+        .sidebar-right { position: sticky; top: 20px; }
+        .sidebar-widget { margin-bottom: 30px; border: 1px solid var(--border-light); border-radius: 8px; background-color: white; overflow: hidden; padding: 15px; }
+        .sidebar-widget h4 { font-size: 1.15rem; color: var(--primary-color); border-left: 5px solid var(--primary-color); padding-left: 10px; margin-bottom: 15px !important; }
+        .sidebar-item { display: flex; margin-bottom: 15px; align-items: center; }
+        .sidebar-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; margin-right: 10px; }
+        .sidebar-item-title { font-size: 0.85rem; line-height: 1.4; font-weight: 500; color: var(--text-dark); }
+        .sidebar-item a:hover .sidebar-item-title { color: var(--primary-color); }
+    </style>
     
     <style>
         :root {
@@ -729,7 +715,7 @@ if (!empty($level1Categories)) {
         <div class="d-flex w-100 align-items-center">
             
             <div class="me-3 category-dropdown-container" id="stickyDropdownContainer">
-                <a class="sticky-category-toggle blink-effect" id="stickyCategoryToggleBtn" href="#" role="button" aria-expanded="false">
+                <a class="sticky-category-toggle blink-effect" id="stickyCategoryToggleBtn" href="<?php echo BASE_URL; ?>/sanpham.php" role="button" aria-expanded="false">
                     <i class="fas fa-bars me-2"></i>
                     DANH MỤC SẢN PHẨM
                 </a>
@@ -907,7 +893,7 @@ if (!empty($level1Categories)) {
         <div class="row w-100">
             
             <div class="col-lg-3 p-0 category-dropdown-container" id="mainDropdownContainer">
-                <a class="btn-category-toggle blink-effect" id="categoryToggleBtn" href="#" role="button" aria-expanded="false">
+                <a class="btn-category-toggle blink-effect" id="categoryToggleBtn" href="<?php echo BASE_URL; ?>/sanpham.php" role="button" aria-expanded="false">
                     <i class="fas fa-bars"></i>
                     DANH MỤC SẢN PHẨM
                 </a>
@@ -918,7 +904,7 @@ if (!empty($level1Categories)) {
                             <?php if (!empty($categoryTree)): ?>
                                 <?php foreach ($categoryTree as $cat1): ?>
                                     <li class="list-group-item <?php echo !empty($cat1['children']) ? 'has-submenu' : ''; ?>" data-parent-title="<?php echo htmlspecialchars($cat1['name']); ?>">
-                                        <a href="#">
+                                        <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat1['id']; ?>">
                                             <?php echo htmlspecialchars($cat1['name']); ?>
                                             <?php if (!empty($cat1['children'])): ?>
                                                 <i class="fas fa-chevron-right text-muted"></i>
@@ -939,11 +925,11 @@ if (!empty($level1Categories)) {
                                     <ul class="mega-menu-list-sub list-group-flush">
                                         <?php foreach ($cat1['children'] as $cat2): ?>
                                             <li class="list-group-item">
-                                                <a href="#"><strong><?php echo htmlspecialchars($cat2['name']); ?></strong></a>
+                                                <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat2['id']; ?>"><strong><?php echo htmlspecialchars($cat2['name']); ?></strong></a>
                                                 <?php if (!empty($cat2['children'])): ?>
                                                     <ul class="list-group" style="padding-left: 15px; border: none;">
                                                         <?php foreach ($cat2['children'] as $cat3): ?>
-                                                            <li class="list-group-item" style="border: none; padding: 4px 0;"><a href="#"><?php echo htmlspecialchars($cat3['name']); ?></a></li>
+                                                            <li class="list-group-item" style="border: none; padding: 4px 0;"><a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat3['id']; ?>"><?php echo htmlspecialchars($cat3['name']); ?></a></li>
                                                         <?php endforeach; ?>
                                                     </ul>
                                                 <?php endif; ?>
@@ -1034,7 +1020,7 @@ if (!empty($level1Categories)) {
                             <?php if (!empty($cat1['children'])): ?>
                                 data-bs-toggle="offcanvas" data-bs-target="#nnpSubMenu_L1_<?php echo $cat1['id']; ?>"
                             <?php endif; ?>>
-                            <a href="#" class="text-dark text-decoration-none flex-grow-1"><?php echo htmlspecialchars($cat1['name']); ?></a>
+                            <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat1['id']; ?>" class="text-dark text-decoration-none flex-grow-1"><?php echo htmlspecialchars($cat1['name']); ?></a>
                             <?php if (!empty($cat1['children'])): ?>
                                 <i class="fas fa-chevron-right text-muted small"></i>
                             <?php endif; ?>
@@ -1105,7 +1091,7 @@ if (!empty($level1Categories)) {
                             <?php if (!empty($cat2['children'])): ?>
                                 data-bs-toggle="offcanvas" data-bs-target="#nnpSubMenu_L2_<?php echo $cat2['id']; ?>" aria-controls="nnpSubMenu_L2_<?php echo $cat2['id']; ?>"
                             <?php endif; ?>>
-                            <a href="#" class="flex-grow-1"><?php echo htmlspecialchars($cat2['name']); ?></a>
+                            <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat2['id']; ?>" class="flex-grow-1"><?php echo htmlspecialchars($cat2['name']); ?></a>
                             <?php if (!empty($cat2['children'])): ?>
                                 <i class="fas fa-chevron-right text-muted"></i>
                             <?php endif; ?>
@@ -1134,7 +1120,7 @@ if (!empty($level1Categories)) {
                         <ul class="list-group list-group-flush">
                             <?php foreach ($cat2['children'] as $cat3): ?>
                                 <li class="list-group-item">
-                                    <a href="#"><?php echo htmlspecialchars($cat3['name']); ?></a>
+                                    <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat3['id']; ?>"><?php echo htmlspecialchars($cat3['name']); ?></a>
                                 </li>
                             <?php endforeach; ?>
                         </ul>

@@ -25,6 +25,7 @@ $status = 1; // Always show active products on frontend
 // Sorting parameters
 $sort_by = $_GET['sort_by'] ?? 'newest'; // 'price_asc', 'price_desc', 'newest'
 
+
 // Fetch products
 $products_result = $productModel->searchAndFilter(
     $keyword, 
@@ -32,6 +33,8 @@ $products_result = $productModel->searchAndFilter(
     $category_level2_id, 
     $category_level3_id, 
     $status, 
+    '', // is_featured - not used on this page
+    $sort_by,
     $limit, 
     $offset
 );
@@ -304,7 +307,7 @@ if (!empty($category_level3_id)) {
                             <div class="product-card-body flex-grow-1">
                                 <div class="product-name"><?php echo htmlspecialchars($product['name']); ?></div>
                                 <div class="price-group">
-                                    <?php if ($product['discount_price'] < $product['price']): ?>
+                                    <?php if (isset($product['discount_price']) && $product['discount_price'] > 0 && $product['discount_price'] < $product['price']): ?>
                                         <span class="price-old"><?php echo number_format($product['price'], 0, ',', '.'); ?>₫</span>
                                         <span class="price-new"><?php echo number_format($product['discount_price'], 0, ',', '.'); ?>₫</span>
                                     <?php else: ?>

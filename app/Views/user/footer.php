@@ -462,6 +462,50 @@ if ($db_path !== false && file_exists($db_path)) {
         });
     </script>
 
+    <!-- Dynamic Table of Contents (TOC) Script -->
+    <script>
+    $(document).ready(function() {
+        // Only run TOC generation if a toc-sidebar exists on the page
+        var tocSidebar = $('.toc-sidebar');
+        if (tocSidebar.length) {
+            var toc = tocSidebar.find('nav');
+            var postContent = $('.post-body'); 
+            
+            toc.empty(); 
+            var tocList = $('<ul class="list-unstyled"></ul>');
+            toc.append(tocList);
+
+            // Diagnostics for debugging
+            console.log('TOC Script: .post-body HTML:', postContent.html()); // Enable for debugging
+            var headings = postContent.find('h2, h3');
+            var headingsCount = headings.length;
+            console.log('TOC Script: Found ' + headingsCount + ' headings for TOC.'); // Enable for debugging
+
+            if (headingsCount > 0) {
+                headings.each(function(index) {
+                    var heading = $(this);
+                    var text = heading.text();
+                    var id = 'toc-' + index + '-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-*|-*$/g, '');
+
+                    heading.attr('id', id);
+
+                    var li = $('<li></li>');
+                    var link = $('<a href="#' + id + '">' + text + '</a>');
+                    
+                    if (this.tagName.toLowerCase() === 'h3') {
+                        li.addClass('ms-3');
+                    }
+                    li.append(link);
+                    tocList.append(li);
+                });
+            } else {
+                toc.append('<p class="small text-muted">Không có mục lục (bài viết chưa có tiêu đề).</p>');
+            }
+        }
+    });
+    </script>
+
+
 <!-- Quick View Modal -->
 <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">

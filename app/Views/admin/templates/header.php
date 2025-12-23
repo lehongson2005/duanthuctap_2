@@ -5,13 +5,8 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-// 1. TỰ ĐỘNG TÍNH ĐƯỜNG DẪN (PATH)
-if (file_exists('sidebar.php')) {
-    $path = ''; 
-} else {
-    // If not in the admin root, assume one level up for crud folders
-    $path = '../'; 
-}
+
+include_once __DIR__ . '/../../../config/db.php'; // Defines BASE_URL
 
 // 2. TỰ ĐỘNG BẮT TRẠNG THÁI ACTIVE
 $current_dir = basename(dirname($_SERVER['PHP_SELF']));
@@ -19,14 +14,11 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
 
 // Kiểm tra đăng nhập và quyền admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 1) {
-    // Xác định đường dẫn tương đối chính xác đến trang login
-    // Nếu đang ở trong thư mục con (VD: /crud...)
-    $login_path = strpos($_SERVER['REQUEST_URI'], '/crud') !== false ? '../Auth/login.php' : 'Auth/login.php';
+    // Correctly redirect to login page using BASE_URL
+    $login_path = rtrim(BASE_URL, '/') . '/app/Views/admin/Auth/login.php';
     header("Location: $login_path");
     exit;
 }
-
-include_once __DIR__ . '/../../../config/db.php';
 
 ?>
 <!DOCTYPE html>
@@ -39,8 +31,11 @@ include_once __DIR__ . '/../../../config/db.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Admin Sidebar CSS -->
-    <link rel="stylesheet" href="<?php echo $path; ?>../assets/css/admin_sidebar.css">
+    <!-- Admin Sidebar CSS (Corrected Path) -->
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/assets/css/admin_sidebar.css">
+
+    <!-- Summernote Lite CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/summernote-lite.min.css" />
 </head>
 <body>
 

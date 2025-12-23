@@ -75,15 +75,23 @@ $active_icons = $iconMenuModel->searchAndFilter('', 1); // status = 1 là active
         <section id="icon-menu-section" class="mb-4">
              <div class="nnp-icon-menu-wrapper">
                 <div class="nnp-icon-menu-scroll">
-                    <?php if ($active_icons && $active_icons->num_rows > 0): ?>
-                        <?php while($icon = $active_icons->fetch_assoc()): ?>
-                            <a href="<?php echo htmlspecialchars($icon['link']); ?>" class="nnp-icon-menu-item" title="<?php echo htmlspecialchars($icon['title']); ?>">
-                                <img src="<?php echo BASE_URL . '/' . htmlspecialchars($icon['image']); ?>" alt="<?php echo htmlspecialchars($icon['title']); ?>">
-                                <span><?php echo htmlspecialchars($icon['title']); ?></span>
-                            </a>
-                        <?php endwhile; ?>
-                    <?php endif; ?>
-                </div>
+                                                <?php if ($active_icons && $active_icons->num_rows > 0): ?>
+                                                    <?php while($icon = $active_icons->fetch_assoc()): 
+                                                        $target_url = '';
+                                                        if ($icon['link_type'] == 'category' && !empty($icon['link_target_id'])) {
+                                                            $target_url = BASE_URL . '/danhmuc.php?id=' . $icon['link_target_id'];
+                                                        } elseif ($icon['link_type'] == 'product' && !empty($icon['link_target_id'])) {
+                                                            $target_url = BASE_URL . '/app/Views/user/sanpham/chitietsanpham.php?id=' . $icon['link_target_id'];
+                                                        } else {
+                                                            $target_url = htmlspecialchars($icon['link']);
+                                                        }
+                                                    ?>
+                                                        <a href="<?php echo $target_url; ?>" class="nnp-icon-menu-item" title="<?php echo htmlspecialchars($icon['title']); ?>">
+                                                            <img src="<?php echo BASE_URL . '/' . htmlspecialchars($icon['image']); ?>" alt="<?php echo htmlspecialchars($icon['title']); ?>">
+                                                            <span><?php echo htmlspecialchars($icon['title']); ?></span>
+                                                        </a>
+                                                    <?php endwhile; ?>
+                                                <?php endif; ?>                </div>
             </div>
         </section>
     </div>

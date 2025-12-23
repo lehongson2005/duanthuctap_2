@@ -35,7 +35,7 @@ $products = $categoryLevel2Model->searchAndFilter($keyword, $category_id, $statu
         <h2 class="fw-bold text-dark mb-0"><?php echo $page_title; ?></h2>
         <p class="text-muted small">Danh sách toàn bộ danh mục cấp 2 (phân loại sản phẩm)</p>
     </div>
-    <a href="add_category_level2.php" class="btn btn-primary shadow-sm">
+    <a href="add_product.php" class="btn btn-primary shadow-sm">
         <i class="fas fa-plus me-2"></i>Thêm Danh mục Cấp 2
     </a>
 </div>

@@ -7,6 +7,13 @@ class ProductModel {
         $this->conn = $conn;
     }
 
+    public function getAll() {
+        $sql = "SELECT id, name FROM {$this->table} ORDER BY name ASC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->get_result();
+    }
+
     public function getById($id) {
         $stmt = $this->conn->prepare("
             SELECT p.*, 
@@ -184,7 +191,7 @@ class ProductModel {
         return $stmt->get_result()->fetch_assoc()['total'];
     }
 
-    public function searchAndFilter($keyword = '', $category_level1_id = '', $category_level2_id = '', $category_level3_id = '', $status = '', $is_featured = '', $limit = null, $offset = null) {
+    public function searchAndFilter($keyword = '', $category_level1_id = '', $category_level2_id = '', $category_level3_id = '', $status = '', $is_featured = '', $sort_by = 'newest', $limit = null, $offset = null) {
         $sql = "SELECT p.*, 
                        c1.name as category_level1_name,
                        c2.name as category_level2_name,
@@ -230,7 +237,21 @@ class ProductModel {
             $types .= "i";
         }
 
-        $sql .= " ORDER BY p.id ASC";
+        // Add sorting logic
+        switch ($sort_by) {
+            case 'price_asc':
+                $sql .= " ORDER BY p.price ASC";
+                break;
+            case 'price_desc':
+                $sql .= " ORDER BY p.price DESC";
+                break;
+            case 'newest':
+            default:
+                $sql .= " ORDER BY p.created_at DESC";
+                break;
+        }
+
+
 
         if ($limit !== null) {
             $sql .= " LIMIT ?";

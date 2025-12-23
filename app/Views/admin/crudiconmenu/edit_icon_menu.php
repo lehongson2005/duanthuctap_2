@@ -1,12 +1,19 @@
 <?php
 include_once '../../../../app/config/db.php';
 include_once '../../../../app/models/IconMenuModel.php';
+include_once '../../../../app/models/CategoryModel.php';
+include_once '../../../../app/models/ProductModel.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 $iconMenuModel = new IconMenuModel($conn);
+$categoryModel = new CategoryModel($conn);
+$productModel = new ProductModel($conn);
+
+$categories = $categoryModel->getAll()->fetch_all(MYSQLI_ASSOC);
+$products = $productModel->getAll()->fetch_all(MYSQLI_ASSOC);
 
 // Get ID from URL
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -57,11 +64,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Sanitize and validate input
     $data['title'] = trim($_POST['title']);
-    $data['link'] = trim($_POST['link']);
+    $data['link_type'] = trim($_POST['link_type']);
     $data['sort_order'] = filter_var($_POST['sort_order'], FILTER_VALIDATE_INT);
     $data['status'] = isset($_POST['status']) ? 1 : 0;
     $data['slug'] = !empty($_POST['slug']) ? trim($_POST['slug']) : createSlug($data['title']);
     $data['id'] = $id;
+
+    // Handle link fields based on link_type
+    if ($data['link_type'] == 'custom') {
+        $data['link'] = trim($_POST['link']);
+        $data['link_target_id'] = null; // Clear target ID if custom link
+        if (empty($data['link'])) $errors['link'] = "Link là bắt buộc cho URL tùy chỉnh.";
+    } else {
+        $data['link_target_id'] = filter_var($_POST['link_target_id'], FILTER_VALIDATE_INT);
+        $data['link'] = ''; // Clear custom link if not custom type
+        if ($data['link_target_id'] === false || $data['link_target_id'] <= 0) $errors['link_target_id'] = "ID đích liên kết là bắt buộc cho loại này.";
+    }
+
 
     if (empty($data['title'])) $errors['title'] = "Tiêu đề là bắt buộc.";
     if ($data['sort_order'] === false || $data['sort_order'] < 0) $errors['sort_order'] = "Thứ tự không hợp lệ.";
@@ -130,8 +149,40 @@ include_once '../templates/header.php';
                         <input type="text" class="form-control" id="slug" name="slug" value="<?php echo htmlspecialchars($data['slug']); ?>" placeholder="Để trống để tự động tạo từ tiêu đề">
                     </div>
                      <div class="mb-3">
-                        <label for="link" class="form-label fw-bold">Link</label>
+                        <label for="link_type" class="form-label fw-bold">Loại liên kết</label>
+                        <select class="form-select" id="link_type" name="link_type">
+                            <option value="custom" <?php echo ($data['link_type'] == 'custom') ? 'selected' : ''; ?>>URL Tùy chỉnh</option>
+                            <option value="category" <?php echo ($data['link_type'] == 'category') ? 'selected' : ''; ?>>Danh mục</option>
+                            <option value="product" <?php echo ($data['link_type'] == 'product') ? 'selected' : ''; ?>>Sản phẩm</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="link_target_id_group" style="<?php echo ($data['link_type'] == 'custom') ? 'display: none;' : ''; ?>">
+                        <label for="link_target_id" class="form-label fw-bold">ID đích liên kết (Category/Product)</label>
+                        <select class="form-select" id="link_target_id" name="link_target_id">
+                            <option value="">Chọn...</option>
+                            <optgroup label="Danh mục">
+                                <?php foreach ($categories as $cat): ?>
+                                    <option value="<?php echo $cat['id']; ?>" data-type="category" <?php echo ($data['link_type'] == 'category' && $data['link_target_id'] == $cat['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($cat['name']); ?> (ID: <?php echo $cat['id']; ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                            <optgroup label="Sản phẩm">
+                                <?php foreach ($products as $prod): ?>
+                                    <option value="<?php echo $prod['id']; ?>" data-type="product" <?php echo ($data['link_type'] == 'product' && $data['link_target_id'] == $prod['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($prod['name']); ?> (ID: <?php echo $prod['id']; ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        </select>
+                        <div class="form-text">Chọn ID của danh mục hoặc sản phẩm để liên kết.</div>
+                    </div>
+
+                    <div class="mb-3" id="link_group" style="<?php echo ($data['link_type'] != 'custom') ? 'display: none;' : ''; ?>">
+                        <label for="link" class="form-label fw-bold">Link URL Tùy chỉnh</label>
                         <input type="text" class="form-control" id="link" name="link" value="<?php echo htmlspecialchars($data['link']); ?>">
+                        <div class="form-text">Ví dụ: <?php echo BASE_URL; ?>/your-custom-page.php hoặc https://external.com</div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -165,6 +216,53 @@ include_once '../templates/header.php';
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const linkTypeSelect = document.getElementById('link_type');
+    const linkTargetIdGroup = document.getElementById('link_target_id_group');
+    const linkGroup = document.getElementById('link_group');
+    const linkTargetIdSelect = document.getElementById('link_target_id');
+
+    function toggleLinkFields() {
+        const selectedLinkType = linkTypeSelect.value;
+
+        if (selectedLinkType === 'custom') {
+            linkGroup.style.display = 'block';
+            linkTargetIdGroup.style.display = 'none';
+        } else {
+            linkGroup.style.display = 'none';
+            linkTargetIdGroup.style.display = 'block';
+
+            // Filter link_target_id options based on link type
+            // Ensure only options matching the selected type (or empty) are visible
+            Array.from(linkTargetIdSelect.options).forEach(option => {
+                const optionType = option.dataset.type;
+                if (option.value === "") { // "Choose..." option
+                    option.style.display = ''; 
+                    return;
+                }
+                if (optionType === selectedLinkType) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+
+            // If current selected option is not valid for the new type, reset it
+            const currentSelectedOption = linkTargetIdSelect.options[linkTargetIdSelect.selectedIndex];
+            if (currentSelectedOption && currentSelectedOption.dataset.type !== selectedLinkType && selectedLinkType !== 'custom') {
+                linkTargetIdSelect.value = ''; // Reset selection
+            }
+        }
+    }
+
+    linkTypeSelect.addEventListener('change', toggleLinkFields);
+
+    // Initial call to set correct visibility based on initial value
+    toggleLinkFields();
+});
+</script>
 
 <?php
 include_once '../templates/footer.php';
