@@ -16,6 +16,7 @@ $productModel = new ProductModel($conn);
 // Get Category ID from URL
 $category_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $sub_category_id = isset($_GET['sub_id']) ? (int)$_GET['sub_id'] : 0;
+$sub_category_id2 = isset($_GET['sub_id2']) ? (int)$_GET['sub_id2'] : 0;
 
 if ($category_id <= 0) {
     header("Location: " . BASE_URL . "/index.php");
@@ -30,6 +31,16 @@ if (!$main_category) {
 }
 $page_title = $main_category['name'];
 
+// If a sub-category is selected, update the page title
+if ($sub_category_id2 > 0) {
+    $sub_cat_details = $categoryLevel3Model->getById($sub_category_id2);
+    if ($sub_cat_details) $page_title = $sub_cat_details['name'];
+} elseif ($sub_category_id > 0) {
+    $sub_cat_details = $categoryLevel2Model->getById($sub_category_id);
+    if ($sub_cat_details) $page_title = $sub_cat_details['name'];
+}
+
+
 // Fetch Level 2 sub-categories for this main category
 $sub_categories = $categoryLevel2Model->searchAndFilter('', $category_id, 1); // Get active L2 cats for this parent L1
 
@@ -38,7 +49,7 @@ $all_products = $productModel->searchAndFilter(
     '',                      // keyword
     $category_id,            // category_level1_id
     $sub_category_id > 0 ? $sub_category_id : '', // category_level2_id (if sub_id is set)
-    '',                      // category_level3_id
+    $sub_category_id2 > 0 ? $sub_category_id2 : '', // category_level3_id (if sub_id2 is set)
     '1',                     // status (active)
     '',                      // is_featured
     null, null               // limit, offset

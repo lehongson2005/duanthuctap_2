@@ -15,6 +15,64 @@ if ($post_id > 0) {
     if ($post) {
         $page_title = $post['title'];
         $related_posts = $postModel->searchAndFilter('', $post['category_id'], 1, null, 5, null, $post['id']);
+
+        // --- TOC Generation ---
+        $toc_html = '<p class="small text-muted">Bài viết này không có mục lục.</p>';
+        $modified_content = isset($post['content']) ? $post['content'] : '';
+
+        if (!empty($post['content'])) {
+            // Slugify function to create valid IDs
+            function slugify_toc($text) {
+                $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+                $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+                $text = preg_replace('~[^-\w]+~', '', $text);
+                $text = trim($text, '-');
+                $text = preg_replace('~-+~', '-', $text);
+                $text = strtolower($text);
+                return empty($text) ? 'section' : $text;
+            }
+
+            $doc = new DOMDocument();
+            libxml_use_internal_errors(true);
+            $doc->loadHTML('<?xml encoding="UTF-8">' . $post['content'], LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+            libxml_clear_errors();
+
+            $xpath = new DOMXPath($doc);
+            $headings = $xpath->query('//h2 | //h3');
+            $toc_items = [];
+            $used_ids = [];
+
+            foreach ($headings as $heading) {
+                $text = $heading->textContent;
+                $level = (int)substr($heading->tagName, 1);
+
+                $base_id = slugify_toc($text);
+                $id = $base_id;
+                $counter = 1;
+                while (in_array($id, $used_ids)) {
+                    $id = $base_id . '-' . $counter++;
+                }
+                $used_ids[] = $id;
+
+                $heading->setAttribute('id', $id);
+                $toc_items[] = ['level' => $level, 'id' => $id, 'text' => $text];
+            }
+
+            if (!empty($toc_items)) {
+                $toc_html = '<ul class="nav flex-column">';
+                foreach ($toc_items as $item) {
+                    $class = 'nav-link toc-link text-dark';
+                    if ($item['level'] == 3) {
+                        $class .= ' ps-4';
+                    }
+                    $toc_html .= '<li class="nav-item"><a class="' . $class . '" href="#' . $item['id'] . '">' . htmlspecialchars($item['text']) . '</a></li>';
+                }
+                $toc_html .= '</ul>';
+                
+                $modified_content = $doc->saveHTML();
+            }
+        }
+        // --- End TOC Generation ---
     }
 }
 
@@ -39,9 +97,8 @@ include_once '../header.php';
             <div class="col-lg-3 d-none d-lg-block">
                 <div class="toc-sidebar">
                     <div class="toc-header"><i class="fas fa-list-ul"></i> Nội dung bài viết</div>
-                    <nav>
-                        <!-- TOC will be generated here by JS from footer.php -->
-                        <p class="small text-muted">Mục lục đang được tải...</p>
+                    <nav id="toc-nav">
+                        <?php echo $toc_html; ?>
                     </nav>
                 </div>
             </div>
@@ -56,10 +113,35 @@ include_once '../header.php';
                         <img src="<?php echo BASE_URL . '/' . htmlspecialchars($post['thumbnail']); ?>" class="img-fluid rounded mb-4" alt="<?php echo htmlspecialchars($post['title']); ?>">
                     <?php endif; ?>
                     <div class="post-body">
-                        <?php echo $post['content']; ?>
+                        <div id="postContentWrapper" class="content-truncated">
+                            <?php echo $modified_content; ?>
+                        </div>
+                        <button id="toggleContentBtn" class="btn btn-link text-success d-none">Xem thêm <i class="fas fa-chevron-down"></i></button>
                     </div>
                 </div>
             </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const postContentWrapper = document.getElementById('postContentWrapper');
+                    const toggleContentBtn = document.getElementById('toggleContentBtn');
+
+                    // Check if content overflows and display button if it does
+                    if (postContentWrapper.scrollHeight > postContentWrapper.clientHeight) {
+                        toggleContentBtn.classList.remove('d-none');
+                    }
+
+                    toggleContentBtn.addEventListener('click', function() {
+                        postContentWrapper.classList.toggle('content-truncated');
+                        postContentWrapper.classList.toggle('content-expanded');
+
+                        if (postContentWrapper.classList.contains('content-expanded')) {
+                            toggleContentBtn.innerHTML = 'Thu gọn <i class="fas fa-chevron-up"></i>';
+                        } else {
+                            toggleContentBtn.innerHTML = 'Xem thêm <i class="fas fa-chevron-down"></i>';
+                        }
+                    });
+                });
+            </script>
 
             <div class="col-lg-3 col-md-4">
                 <div class="sidebar-right">

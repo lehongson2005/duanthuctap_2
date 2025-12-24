@@ -127,6 +127,33 @@ if (!empty($level1Categories)) {
         .sidebar-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; margin-right: 10px; }
         .sidebar-item-title { font-size: 0.85rem; line-height: 1.4; font-weight: 500; color: var(--text-dark); }
         .sidebar-item a:hover .sidebar-item-title { color: var(--primary-color); }
+
+        /* Custom styles for content truncation */
+        .content-truncated {
+            max-height: 500px; /* Adjust as needed */
+            overflow: hidden;
+            position: relative;
+        }
+
+        .content-truncated::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px; /* Height of the fade effect */
+            background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+            pointer-events: none; /* Allows interaction with content beneath */
+        }
+
+        .content-expanded {
+            max-height: none;
+            overflow: visible;
+        }
+
+        .content-expanded::after {
+            display: none;
+        }
     </style>
     
     <style>
@@ -715,7 +742,7 @@ if (!empty($level1Categories)) {
         <div class="d-flex w-100 align-items-center">
             
             <div class="me-3 category-dropdown-container" id="stickyDropdownContainer">
-                <a class="sticky-category-toggle blink-effect" id="stickyCategoryToggleBtn" href="<?php echo BASE_URL; ?>/sanpham.php" role="button" aria-expanded="false">
+                <a class="sticky-category-toggle blink-effect" id="stickyCategoryToggleBtn" href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/sanpham.php" role="button" aria-expanded="false">
                     <i class="fas fa-bars me-2"></i>
                     DANH MỤC SẢN PHẨM
                 </a>
@@ -893,7 +920,7 @@ if (!empty($level1Categories)) {
         <div class="row w-100">
             
             <div class="col-lg-3 p-0 category-dropdown-container" id="mainDropdownContainer">
-                <a class="btn-category-toggle blink-effect" id="categoryToggleBtn" href="<?php echo BASE_URL; ?>/sanpham.php" role="button" aria-expanded="false">
+                <a class="btn-category-toggle blink-effect" id="categoryToggleBtn" href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/sanpham.php" role="button" aria-expanded="false">
                     <i class="fas fa-bars"></i>
                     DANH MỤC SẢN PHẨM
                 </a>
@@ -925,11 +952,11 @@ if (!empty($level1Categories)) {
                                     <ul class="mega-menu-list-sub list-group-flush">
                                         <?php foreach ($cat1['children'] as $cat2): ?>
                                             <li class="list-group-item">
-                                                <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat2['id']; ?>"><strong><?php echo htmlspecialchars($cat2['name']); ?></strong></a>
+                                                <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat1['id']; ?>&sub_id=<?php echo $cat2['id']; ?>"><strong><?php echo htmlspecialchars($cat2['name']); ?></strong></a>
                                                 <?php if (!empty($cat2['children'])): ?>
                                                     <ul class="list-group" style="padding-left: 15px; border: none;">
                                                         <?php foreach ($cat2['children'] as $cat3): ?>
-                                                            <li class="list-group-item" style="border: none; padding: 4px 0;"><a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat3['id']; ?>"><?php echo htmlspecialchars($cat3['name']); ?></a></li>
+                                                            <li class="list-group-item" style="border: none; padding: 4px 0;"><a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat1['id']; ?>&sub_id=<?php echo $cat2['id']; ?>&sub_id2=<?php echo $cat3['id']; ?>"><?php echo htmlspecialchars($cat3['name']); ?></a></li>
                                                         <?php endforeach; ?>
                                                     </ul>
                                                 <?php endif; ?>
@@ -951,14 +978,14 @@ if (!empty($level1Categories)) {
                      <li class="nav-item dropdown">
                  <a class="nav-link dropdown-toggle"
                href="#"
-                  id="camNangDropdown"
+                  id="chinhSachDropdown"
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false">
                    Chính sách chiết khấu
                               </a>
 
-                     <ul class="dropdown-menu" aria-labelledby="camNangDropdown">
+                     <ul class="dropdown-menu" aria-labelledby="chinhSachDropdown">
                    <li>
                   <a class="dropdown-item" href="<?php echo BASE_URL; ?>/app/Views/user/chinhsachchietkhau/chinhsachvanchuyen.php">Chính sách vận chuyển</a>
                       </li>
@@ -1091,7 +1118,7 @@ if (!empty($level1Categories)) {
                             <?php if (!empty($cat2['children'])): ?>
                                 data-bs-toggle="offcanvas" data-bs-target="#nnpSubMenu_L2_<?php echo $cat2['id']; ?>" aria-controls="nnpSubMenu_L2_<?php echo $cat2['id']; ?>"
                             <?php endif; ?>>
-                            <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat2['id']; ?>" class="flex-grow-1"><?php echo htmlspecialchars($cat2['name']); ?></a>
+                            <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat1['id']; ?>&sub_id=<?php echo $cat2['id']; ?>" class="flex-grow-1"><?php echo htmlspecialchars($cat2['name']); ?></a>
                             <?php if (!empty($cat2['children'])): ?>
                                 <i class="fas fa-chevron-right text-muted"></i>
                             <?php endif; ?>
@@ -1120,7 +1147,7 @@ if (!empty($level1Categories)) {
                         <ul class="list-group list-group-flush">
                             <?php foreach ($cat2['children'] as $cat3): ?>
                                 <li class="list-group-item">
-                                    <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat3['id']; ?>"><?php echo htmlspecialchars($cat3['name']); ?></a>
+                                    <a href="<?php echo BASE_URL; ?>/danhmuc.php?id=<?php echo $cat1['id']; ?>&sub_id=<?php echo $cat2['id']; ?>&sub_id2=<?php echo $cat3['id']; ?>"><?php echo htmlspecialchars($cat3['name']); ?></a>
                                 </li>
                             <?php endforeach; ?>
                         </ul>

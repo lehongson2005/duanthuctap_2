@@ -35,7 +35,7 @@ $total_records = $productModel->getTotal($keyword, $category_level1_id, $categor
 $total_pages = ceil($total_records / $limit);
 
 // Get records for the current page
-$products = $productModel->searchAndFilter($keyword, $category_level1_id, $category_level2_id, $category_level3_id, $status, '', $limit, $offset);
+$products = $productModel->searchAndFilter($keyword, $category_level1_id, $category_level2_id, $category_level3_id, $status, '', 'newest', $limit, $offset);
 
 ?>
 
