@@ -82,18 +82,13 @@
                             <span class="nnp-new-badge">HÀNG MỚI</span>
                         <?php endif; ?>
 
-                        <div class="quick-view-badge" onclick='openQuickView(<?= json_encode($product); ?>)' 
-                             style="position:absolute; top:10px; right:10px; z-index:20; cursor:pointer; background:rgba(255,255,255,0.9); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                            <i class="fas fa-eye text-success" style="font-size: 0.8rem;"></i>
-                        </div>
+
 
                         <div class="card-body p-2 text-center quick-view-trigger" 
                              style="cursor: pointer;"
                              onclick="window.location.href='<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>'">
     
-                            <small class="text-muted d-block" style="font-size: 0.7rem;">
-                                <?= htmlspecialchars($product['supplier'] ?? 'Nông Nghiệp Phố'); ?>
-                            </small>
+                
                             
                             <div class="product-image-container">
                                 <img src="<?= BASE_URL . '/' . ($product['thumbnail'] ?? 'public/uploads/default.png'); ?>" class="product-main-img">

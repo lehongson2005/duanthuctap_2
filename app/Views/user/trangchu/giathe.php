@@ -94,11 +94,7 @@
                             <?php endif; ?>
 
                             <div class="card-body p-2 text-center">
-                                <small class="text-muted d-block" style="font-size: 0.7rem;">
-                                    <?php echo htmlspecialchars(isset($product['supplier']) ? $product['supplier'] : 'N/A'); ?>
-                                </small>
-                                <small class="text-success fw-bold d-block mb-2" style="font-size: 0.7rem;">SẢN PHẨM CHÍNH HÃNG</small>
-                                
+     
                                 <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
                                     <img src="<?php echo BASE_URL . '/' . htmlspecialchars(isset($product['thumbnail']) ? $product['thumbnail'] : 'https://via.placeholder.com/150?text=No+Image'); ?>"
                                          class="img-fluid product-main-img"
@@ -108,11 +104,7 @@
                                          alt="<?php echo htmlspecialchars($product['name']); ?> - Ảnh 2">
                                 </a>
                                 
-                                <div class="d-flex justify-content-around mb-2">
-                                    <i class="fas fa-microchip text-success" title="Miễn phí tư vấn"></i>
-                                    <i class="fas fa-certificate text-success" title="Đảm bảo chất lượng"></i>
-                                    <i class="fas fa-seedling text-success" title="Dễ sử dụng"></i>
-                                </div>
+   
 
                                 <p class="card-text mb-1" style="font-size: 0.85rem;">
                                      <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">

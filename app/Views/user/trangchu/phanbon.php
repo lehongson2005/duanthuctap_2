@@ -112,20 +112,14 @@
                              data-price-formatted="<?php echo number_format($product['price'], 0, ',', '.'); ?>₫"
                              data-image="<?php echo htmlspecialchars(isset($product['thumbnail']) ? $product['thumbnail'] : 'public/uploads/default.png'); ?>">
                             
-                            <div class="quick-view-badge" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>)" 
-                                 style="position:absolute; top:10px; right:10px; z-index:10; cursor:pointer; background:rgba(255,255,255,0.8); border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">
-                                <i class="fas fa-eye text-success"></i>
-                            </div>
+         
 
                             <?php if (!empty($product['is_new'])): ?>
                                 <span class="nnp-new-badge">Hàng mới về</span>
                             <?php endif; ?>
 
                             <div class="card-body p-2 text-center">
-                                <small class="text-muted d-block" style="font-size: 0.7rem;">
-                                    <?php echo htmlspecialchars(isset($product['supplier']) ? $product['supplier'] : 'N/A'); ?>
-                                </small>
-                                <small class="text-success fw-bold d-block mb-2" style="font-size: 0.7rem;">SẢN PHẨM CHÍNH HÃNG</small>
+                    
                                 
                                 <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
                                     <img src="<?php echo BASE_URL . '/' . htmlspecialchars(isset($product['thumbnail']) ? $product['thumbnail'] : 'https://via.placeholder.com/150?text=No+Image'); ?>"
@@ -136,11 +130,7 @@
                                          alt="<?php echo htmlspecialchars($product['name']); ?> - Ảnh 2">
                                 </a>
                                 
-                                <div class="d-flex justify-content-around mb-2">
-                                    <i class="fas fa-microchip text-success" title="Miễn phí tư vấn"></i>
-                                    <i class="fas fa-certificate text-success" title="Đảm bảo chất lượng"></i>
-                                    <i class="fas fa-seedling text-success" title="Dễ sử dụng"></i>
-                                </div>
+               
 
                                 <p class="card-text mb-1" style="font-size: 0.85rem;">
                                     <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">

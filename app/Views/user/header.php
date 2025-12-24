@@ -565,6 +565,14 @@ if (!empty($level1Categories)) {
             flex-direction: column;
             align-items: flex-start;
             line-height: 1.2;
+            width: 60px;
+        }
+                .account-links-container1 {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1.2;
+            width: 60px;
         }
         .account-links-container a {
             color: inherit;
@@ -573,6 +581,14 @@ if (!empty($level1Categories)) {
             margin: 0;
             transition: color 0.2s;
         }
+                .account-links-container1 a {
+            color: inherit;
+            text-decoration: none;
+            padding: 0;
+            margin: 0;
+            transition: color 0.2s;
+            width: 90px;
+        }
         .account-links-container a:hover {
             color: #ffcc00;
         }
@@ -580,8 +596,18 @@ if (!empty($level1Categories)) {
             font-weight: bold;
             font-size: 0.8rem;
         }
+                .account-links-container1 a:hover {
+            color: #ffcc00;
+        }
+        .account-links-container1 .title {
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
         .account-links-container .sub {
             font-size: 0.6rem;
+        }
+                .account-links-container1 .sub {
+            font-size: 0.8rem;
         }
     .cart-btn-container { position: relative; }
         .mini-cart {
@@ -727,12 +753,14 @@ if (!empty($level1Categories)) {
     </a>
     
     <div class="nnp-mobile-search">
-        <div class="input-group">
-            <input type="text" class="form-control" placeholder="Tìm kiếm..." aria-label="Tìm kiếm sản phẩm">
-            <button class="btn btn-nnp-yellow" type="button" style="height: 40px;"><i class="fas fa-search"></i></button>
-        </div>
+        <form action="<?php echo BASE_URL; ?>/timkiem.php" method="GET">
+            <div class="input-group">
+                <input type="text" class="form-control" name="keyword" placeholder="Tìm kiếm..." aria-label="Tìm kiếm sản phẩm">
+                <button class="btn btn-nnp-yellow" type="submit" style="height: 40px;"><i class="fas fa-search"></i></button>
+            </div>
+        </form>
         <div class="hot-search-keywords">
-            <a href="#">lưới lan</a> | <a href="#">trichoderma</a> | <a href="#">đất sạch</a> | <a href="#">phân bón</a> | <a href="#">phân gà</a>
+            <a href="<?php echo BASE_URL; ?>/timkiem.php?keyword=lưới lan">lưới lan</a> | <a href="<?php echo BASE_URL; ?>/timkiem.php?keyword=trichoderma">trichoderma</a> | <a href="<?php echo BASE_URL; ?>/timkiem.php?keyword=đất sạch">đất sạch</a> | <a href="<?php echo BASE_URL; ?>/timkiem.php?keyword=phân bón">phân bón</a> | <a href="<?php echo BASE_URL; ?>/timkiem.php?keyword=phân gà">phân gà</a>
         </div>
     </div>
 </div>
@@ -748,10 +776,10 @@ if (!empty($level1Categories)) {
                 </a>
                 </div>
             
-            <div class="input-group search-input-group">
-                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." aria-label="Tìm kiếm sản phẩm">
-                <button class="btn btn-nnp-yellow" type="button"><i class="fas fa-search"></i></button>
-            </div>
+            <form action="<?php echo BASE_URL; ?>/timkiem.php" method="GET" class="input-group search-input-group">
+                <input type="text" class="form-control" name="keyword" placeholder="Tìm kiếm sản phẩm..." aria-label="Tìm kiếm sản phẩm">
+                <button class="btn btn-nnp-yellow" type="submit"><i class="fas fa-search"></i></button>
+            </form>
             
             <a href="tel:0865588883" class="header-icon-link">
                 <i class="fas fa-phone-alt"></i><span class="header-phone-number"> Gọi mua hàng 0865588883</span>
@@ -836,66 +864,108 @@ if (!empty($level1Categories)) {
 <header class="bg-nnp-green py-3 nnp-header-main d-none d-lg-block">
     <div class="container px-5">
         <div class="row align-items-center">
+
+            <!-- LOGO -->
             <div class="col-lg-2 d-flex align-items-center">
-                <a href="<?php echo BASE_URL; ?>/index.php" class="text-white text-decoration-none d-flex align-items-center">
-                    <h5 class="text-light"><a href="<?php echo BASE_URL; ?>/index.php" class="text-light fw-bold">Nông Nghiệp Phố</a></h5>
+                <a href="<?php echo BASE_URL; ?>/index.php"
+                   class="text-light fw-bold text-decoration-none fs-5">
+                    Nông Nghiệp Phố
                 </a>
             </div>
+
+            <!-- SEARCH -->
             <div class="col-lg-4">
-                <div class="input-group search-input-group">
-                    <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." aria-label="Tìm kiếm sản phẩm">
-                    <button class="btn btn-nnp-yellow" type="button"><i class="fas fa-search"></i></button>
-                </div>
-                <div class="hot-search-keywords">
-                    <a href="#">lưới lan</a> | <a href="#">thuốc trừ sâu</a> | <a href="#">trichoderma</a> | <a href="#">đất sạch</a> | <a href="#">phân bón</a> | <a href="#">phân gà</a>
+                <form action="<?php echo BASE_URL; ?>/timkiem.php"
+                      method="GET"
+                      class="input-group search-input-group mb-1">
+                    <input type="text"
+                           class="form-control"
+                           name="keyword"
+                           placeholder="Tìm kiếm sản phẩm...">
+                    <button class="btn btn-nnp-yellow" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+
+                <div class="search-keywords small text-light">
+                    <a class="text-light" href="<?php echo BASE_URL; ?>/timkiem.php?keyword=lưới lan">lưới lan</a> |
+                    <a class="text-light" href="<?php echo BASE_URL; ?>/timkiem.php?keyword=trichoderma">trichoderma</a> |
+                    <a class="text-light" href="<?php echo BASE_URL; ?>/timkiem.php?keyword=đất sạch">đất sạch</a> |
+                    <a class="text-light" href="<?php echo BASE_URL; ?>/timkiem.php?keyword=phân bón">phân bón</a> |
+                    <a class="text-light" href="<?php echo BASE_URL; ?>/timkiem.php?keyword=phân gà">phân gà</a>
                 </div>
             </div>
-            <div class="col-lg-6 d-flex justify-content-end align-items-center">
-                <a href="tel:0865588883" class="header-icon-link">
-                    <i class="fas fa-phone-alt"></i>
-                    <div>
-                        <span class="title">Gọi mua hàng</span>
-                        <span class="sub">0865588883</span>
-                    </div>
-                </a>
 
-                <a href="<?php echo BASE_URL; ?>/app/Views/user/hethongcuahang/hethongcuahang.php" class="header-icon-link">
-                    <i class="fas fa-store"></i>
-                    <div>
-                        <span class="title">Hệ thống <br> cửa hàng</span>
-                    </div>
-                </a>
+            <!-- RIGHT ACTIONS -->
+            <div class="col-lg-6 d-flex justify-content-end align-items-center gap-4">
 
-                <div class="header-account-container">
+              <div class="header-account-container d-flex align-items-center">
+    <div class="header-icon">
+        <i class="fas fa-phone-alt header-icon-large"></i>
+    </div>
+
+    <div class="account-links-container1 ms-2">
+        
+        <a href="tel:0865588883" class="sub">Gọi mua hàng <br> 0865588883</a>
+    </div>
+</div>
+
+<div class="header-account-container d-flex align-items-center">
+    <div class="header-icon">
+        <i class="fas fa-store header-icon-large"></i>
+    </div>
+
+    <div class="account-links-container1 ms-2">
+        <a href="<?php echo BASE_URL; ?>/app/Views/user/hethongcuahang/hethongcuahang.php"
+           class="title">Hệ thống <br> cửa hàng</a>
+       
+          
+    </div>
+</div>
+
+
+                <!-- ACCOUNT -->
+                <div class="header-account-container d-flex align-items-center">
                     <i class="fas fa-user header-icon-large"></i>
-                    <div class="account-links-container">
-                        <a href="<?php echo BASE_URL; ?>/app/Views/user/taikhoan/taikhoan.php" class="title">Tài khoản</a>
-                        <a href="<?php echo BASE_URL; ?>/app/Views/admin/index.php" class="sub">Đăng nhập</a>
+                    <div class="account-links-container ms-2">
+                        <a href="<?php echo BASE_URL; ?>/app/Views/user/taikhoan/taikhoan.php"
+                           class="title">Tài khoản</a>
+                        <a href="<?php echo BASE_URL; ?>/app/Views/admin/index.php"
+                           class="sub">Đăng nhập</a>
                     </div>
                 </div>
-               
-                <div class="cart-btn-container">
-                    <a href="<?php echo BASE_URL; ?>/app/Views/user/giohang/giohang.php" class="cart-btn-custom position-relative">
+
+                <!-- CART -->
+                <div class="cart-btn-container position-relative">
+                    <a href="<?php echo BASE_URL; ?>/app/Views/user/giohang/giohang.php"
+                       class="cart-btn-custom position-relative">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Giỏ hàng</span>
-                         <?php if ($cart_item_count > 0): ?>
-                         <span class="cart-badge badge rounded-pill bg-warning text-dark position-absolute">
-    <?= $cart_item_count > 0 ? $cart_item_count : '' ?>
-</span>
+
+                        <?php if ($cart_item_count > 0): ?>
+                            <span class="cart-badge badge rounded-pill bg-warning text-dark position-absolute">
+                                <?= $cart_item_count ?>
+                            </span>
                         <?php endif; ?>
                     </a>
+
                     <div class="mini-cart">
                         <?php if (!empty($cart_products)): ?>
                             <div class="mini-cart-header">Sản phẩm mới thêm</div>
                             <div class="mini-cart-body">
-                                <?php foreach($cart_products as $item): ?>
-                                <div class="mini-cart-item">
-                                    <img src="<?php echo BASE_URL . '/' . htmlspecialchars($item['thumbnail']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
-                                    <div class="mini-cart-item-info">
-                                        <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $item['id']; ?>" class="mini-cart-item-name"><?php echo htmlspecialchars($item['name']); ?></a>
-                                        <span class="mini-cart-item-price"><?php echo $item['quantity']; ?> x <?php echo number_format($item['price']); ?>₫</span>
+                                <?php foreach ($cart_products as $item): ?>
+                                    <div class="mini-cart-item">
+                                        <img src="<?php echo BASE_URL . '/' . htmlspecialchars($item['thumbnail']); ?>">
+                                        <div class="mini-cart-item-info">
+                                            <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $item['id']; ?>"
+                                               class="mini-cart-item-name">
+                                                <?php echo htmlspecialchars($item['name']); ?>
+                                            </a>
+                                            <span class="mini-cart-item-price">
+                                                <?php echo $item['quantity']; ?> × <?php echo number_format($item['price']); ?>₫
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
                                 <?php endforeach; ?>
                             </div>
                             <div class="mini-cart-footer">
@@ -903,17 +973,24 @@ if (!empty($level1Categories)) {
                                     <span>Tổng cộng:</span>
                                     <span><?php echo number_format($cart_total_price); ?>₫</span>
                                 </div>
-                                <a href="<?php echo BASE_URL; ?>/app/Views/user/giohang/giohang.php" class="btn btn-success w-100">Xem giỏ hàng</a>
+                                <a href="<?php echo BASE_URL; ?>/app/Views/user/giohang/giohang.php"
+                                   class="btn btn-success w-100">
+                                    Xem giỏ hàng
+                                </a>
                             </div>
                         <?php else: ?>
-                            <div class="p-3 text-center text-dark">Giỏ hàng của bạn đang trống.</div>
+                            <div class="p-3 text-center text-dark">
+                                Giỏ hàng của bạn đang trống.
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 </header>
+
 
 <nav class="navbar navbar-expand-lg navbar-nnp d-none d-lg-block">
     <div class="container px-5">

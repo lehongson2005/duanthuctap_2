@@ -409,7 +409,7 @@ if ($db_path !== false && file_exists($db_path)) {
         </div>
 
         <div class="fab-wrapper">
-            <a href="#" class="fab-btn fab-location"><i class="fas fa-map-marker-alt"></i></a>
+            <a href="<?php echo BASE_URL; ?>/app/Views/user/hethongcuahang/hethongcuahang.php" class="fab-btn fab-location"><i class="fas fa-map-marker-alt"></i></a>
             <span class="fab-tooltip">Chọn kho giao hàng</span>
         </div>
 
@@ -419,7 +419,7 @@ if ($db_path !== false && file_exists($db_path)) {
         </div>
 
         <div class="fab-wrapper">
-            <a href="#" class="fab-btn fab-zalo"><i class="fas fa-comment-dots"></i></a>
+            <a href="https://zalo.me/0394388266" class="fab-btn fab-zalo"><i class="fas fa-comment-dots"></i></a>
             <span class="fab-tooltip">Chat với chúng tôi qua Zalo</span>
         </div>
     </div>

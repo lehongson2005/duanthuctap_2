@@ -1,110 +1,154 @@
 <?php
 // FILE: /timkiem.php
 
-// This file needs the header to define BASE_URL and start session
 include_once __DIR__ . '/app/Views/user/header.php';
 include_once __DIR__ . '/app/config/db.php';
 include_once __DIR__ . '/app/models/ProductModel.php';
 
-// Instantiate models
 $productModel = new ProductModel($conn);
 
-// Get keyword from URL
+// Lấy từ khóa
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
-
-if (empty($keyword)) {
+if ($keyword === '') {
     header("Location: " . BASE_URL . "/index.php");
     exit();
 }
 
 $page_title = 'Kết quả tìm kiếm cho "' . htmlspecialchars($keyword) . '"';
 
-// Fetch all active products matching the keyword
+// Lấy sản phẩm
 $all_products = $productModel->searchAndFilter($keyword, '', '', '', '1', '', null, null);
-
-// --- HEADER ---
-// Already included above
-
 ?>
 
 <style>
-/* --- CSS for Product Grid (copied from danhmuc.php) --- */
-.product-grid-container {
+/* ===== SEARCH PAGE ===== */
+.search-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+/* ===== PRODUCT GRID ===== */
+.product-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 products per row on desktop */
-    gap: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
 }
+
+/* ===== PRODUCT CARD ===== */
 .product-card {
-    position: relative;
+    background: #fff;
+    border-radius: 16px;
     overflow: hidden;
-    text-decoration: none;
-    color: #333;
-    display: block;
+    transition: all .3s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
 }
-.product-card:hover { color: #333; }
-.product-image-container {
+.product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 36px rgba(0,0,0,.14);
+}
+
+/* ===== IMAGE ===== */
+.product-image {
     position: relative;
-    height: 200px;
-    margin-bottom: 8px;
+    height: 220px;
+    background: #f6f6f6;
 }
-.product-main-img, .product-hover-img {
+.product-image img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transition: opacity 0.3s ease;
-    position: absolute;
-    top: 0;
-    left: 0;
+    transition: opacity .35s ease;
 }
-.product-hover-img { opacity: 0; }
-.product-card:hover .product-hover-img { opacity: 1; }
-.product-card:hover .product-main-img { opacity: 0; }
+.product-image img.hover { opacity: 0; }
+.product-card:hover img.hover { opacity: 1; }
+.product-card:hover img.main { opacity: 0; }
 
-@media (max-width: 991.98px) {
-    .product-grid-container { grid-template-columns: repeat(2, 1fr); } /* 2 products on mobile */
+/* ===== CONTENT ===== */
+.product-name {
+    font-size: .95rem;
+    font-weight: 600;
+    min-height: 44px;
+    line-height: 1.4;
+    color: #333;
+}
+.product-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #e53935;
+}
+
+/* ===== BUTTON ===== */
+.btn-cart {
+    border-radius: 999px;
+    padding: 6px 20px;
+    font-size: .8rem;
+    transition: all .25s ease;
+}
+.btn-cart:hover {
+    transform: scale(1.05);
+}
+
+/* ===== EMPTY ===== */
+.empty-result {
+    padding: 80px 0;
+    color: #777;
+    font-size: 1.05rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 576px) {
+    .product-grid { grid-template-columns: 1fr; }
 }
 </style>
 
-<div class="container mt-4">
-    <!-- Page Title -->
-    <h2 class="fw-bold mb-4"><?php echo $page_title; ?></h2>
+<div class="container mt-4 mb-5">
+    <h2 class="search-title mb-4"><?= $page_title ?></h2>
 
-    <!-- Products Section -->
-    <section id="product-grid-section">
-        <?php if ($all_products && $all_products->num_rows > 0): ?>
-            <div class="product-grid-container">
-                <?php while ($product = $all_products->fetch_assoc()): ?>
-                    <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="text-decoration-none">
-                    <div class="card h-100 product-card border-0 shadow-sm">
-                        <div class="card-body p-2 text-center">
-                             <div class="product-image-container">
-                                <img src="<?php echo BASE_URL . '/' . htmlspecialchars($product['thumbnail'] ?? ''); ?>"
-                                     class="img-fluid product-main-img"
-                                     alt="<?php echo htmlspecialchars($product['name']); ?>">
-                                <img src="<?php echo BASE_URL . '/' . htmlspecialchars(!empty($product['image_hover']) ? $product['image_hover'] : ($product['thumbnail'] ?? '')); ?>"
-                                     class="img-fluid product-hover-img"
-                                     alt="<?php echo htmlspecialchars($product['name']); ?> - hover">
-                            </div>
-                            <p class="card-text mb-1" style="font-size: 0.9rem;"><?php echo htmlspecialchars($product['name']); ?></p>
-                            <span class="text-danger fw-bold d-block"><?php echo number_format($product['price'], 0, ',', '.'); ?>₫</span>
+    <?php if ($all_products && $all_products->num_rows > 0): ?>
+        <div class="product-grid">
+            <?php while ($product = $all_products->fetch_assoc()): ?>
+                <a href="<?= BASE_URL ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id'] ?>"
+                   class="text-decoration-none">
+
+                    <div class="product-card h-100">
+                        <div class="product-image">
+                            <img src="<?= BASE_URL . '/' . htmlspecialchars($product['thumbnail']) ?>"
+                                 class="main"
+                                 alt="<?= htmlspecialchars($product['name']) ?>">
+                            <img src="<?= BASE_URL . '/' . htmlspecialchars($product['image_hover'] ?? $product['thumbnail']) ?>"
+                                 class="hover"
+                                 alt="<?= htmlspecialchars($product['name']) ?>">
                         </div>
-                         <div class="card-footer bg-white border-0 text-center p-2">
-                            <button class="btn btn-sm btn-success" onclick="event.preventDefault(); event.stopPropagation();">Thêm vào giỏ</button>
+
+                        <div class="p-3 text-center">
+                            <div class="product-name mb-2">
+                                <?= htmlspecialchars($product['name']) ?>
+                            </div>
+                            <div class="product-price mb-3">
+                                <?= number_format($product['price'], 0, ',', '.') ?>₫
+                            </div>
+                            <button class="btn btn-success btn-sm btn-cart"
+                                    onclick="event.preventDefault();event.stopPropagation();">
+                                Thêm vào giỏ
+                            </button>
                         </div>
                     </div>
-                </a>
-                <?php endwhile; ?>
-            </div>
-        <?php else: ?>
-            <div class="text-center p-5">
-                <p>Không tìm thấy sản phẩm nào phù hợp với từ khóa của bạn.</p>
-            </div>
-        <?php endif; ?>
-    </section>
 
+                </a>
+            <?php endwhile; ?>
+        </div>
+    <?php else: ?>
+        <div class="text-center empty-result">
+            Không tìm thấy sản phẩm phù hợp với từ khóa.
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php
-// --- FOOTER ---
 include __DIR__ . '/app/Views/user/footer.php';
 ?>
