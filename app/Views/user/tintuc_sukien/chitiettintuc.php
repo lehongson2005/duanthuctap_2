@@ -42,7 +42,7 @@ if ($post_id > 0) {
             // Slugify function to create valid IDs
             function slugify_toc($text) {
                 $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-                $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+                $text = iconv('utf-8', 'us-ascii//TRANSLIT//IGNORE', $text);
                 $text = preg_replace('~[^-\w]+~', '', $text);
                 $text = trim($text, '-');
                 $text = preg_replace('~-+~', '-', $text);

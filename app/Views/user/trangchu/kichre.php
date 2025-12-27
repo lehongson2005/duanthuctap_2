@@ -67,8 +67,8 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-bold mb-0" style="color: #238E46;">KÍCH RỄ</h3>
-        <a href="<?= BASE_URL; ?>/danhmuc.php?id=1" class="btn btn-outline-success btn-sm rounded-pill px-3">
+        <h3 class="fw-bold mb-0">KÍCH RỄ</h3>
+        <a href="<?= $kichre_view_all_url ?? '#' ?>" class="btn btn-outline-success btn-sm rounded-pill px-3">
             Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
         </a>
     </div>

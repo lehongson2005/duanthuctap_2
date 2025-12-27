@@ -29,8 +29,9 @@ $categoryLevel2Model = new CategoryLevel2Model($conn);
 $categoryLevel3Model = new CategoryLevel3Model($conn);
 $productModel = new ProductModel($conn);
 
-// --- Fetch products for "Kích Rễ" category ---
-$kichre_products = $productModel->searchAndFilter('', '1', '', '', '1', '', null, null);
+// --- Fetch products for "Kích Rễ" section by keyword search ---
+$kichre_products = $productModel->searchAndFilter('Kích rễ', '', '', '', '1', '', 8, null);
+$kichre_view_all_url = BASE_URL . '/timkiem.php?keyword=' . urlencode('Kích rễ');
 
 
 // --- Fetch products for "Phân Bón" category ---
@@ -106,32 +107,65 @@ if ($hatgiongCategory) {
 $combobanchay_products = $productModel->searchAndFilter('Combo', '', '', '', '1', '', null, null);
 
 // --- Fetch products for "Dụng cụ làm vườn" TABS ---
-
-// First, get the main parent category ID for 'Dụng cụ làm vườn'
 $dungculamvuon_parent_category_id = null;
-$dclv_cat = $categoryModel->getByName('Dụng cụ làm vườn');
-if ($dclv_cat) {
-    // Assumes 'Dụng cụ làm vườn' is a Level 1 Category
-    $dungculamvuon_parent_category_id = $dclv_cat['id'];
-}
-// Note: This logic assumes 'Dụng cụ làm vườn' is a Level 1 category.
-// If it could be L2 or L3, this would need to be more complex, but based on user feedback, it's the main parent.
-
-// Tab 1: Chậu trồng rau (Filter by keyword 'Chậu')
 $chautrongrau_products = [];
-if ($dungculamvuon_parent_category_id) {
-    $chautrongrau_products = $productModel->searchAndFilter('Chậu', $dungculamvuon_parent_category_id, '', '', '1', '', null, null);
-}
-
-// Tab 2: Dụng cụ chăm sóc cây (Filter by keyword 'Tưới')
 $dungcuchamsoc_products = [];
-if ($dungculamvuon_parent_category_id) {
-    $dungcuchamsoc_products = $productModel->searchAndFilter('Tưới', $dungculamvuon_parent_category_id, '', '', '1', '', null, null);
+$dungculamvuon_products = [];
+
+// Try to find "Dụng cụ làm vườn" at any level to get the main parent L1 ID
+$dclv_cat_l1 = $categoryModel->getByName('Dụng cụ làm vườn');
+if ($dclv_cat_l1) {
+    $dungculamvuon_parent_category_id = $dclv_cat_l1['id'];
+} else {
+    $dclv_cat_l2 = $categoryLevel2Model->getByName('Dụng cụ làm vườn');
+    if ($dclv_cat_l2) {
+        $dungculamvuon_parent_category_id = $dclv_cat_l2['category_id']; // Get parent L1 ID
+    } else {
+        $dclv_cat_l3 = $categoryLevel3Model->getByName('Dụng cụ làm vườn');
+        if ($dclv_cat_l3) {
+            $l3_parent_l2 = $categoryLevel2Model->getById($dclv_cat_l3['category_level2_id']);
+            if ($l3_parent_l2) {
+                $dungculamvuon_parent_category_id = $l3_parent_l2['category_id']; // Get parent L1 ID
+            }
+        }
+    }
 }
 
-// Tab 3: Dụng cụ làm vườn (General - All products in the parent category)
-$dungculamvuon_products = [];
+// Now, if we found the parent category, fetch the products for the tabs
 if ($dungculamvuon_parent_category_id) {
+    // Tab 1: Chậu trồng rau (Filter by keyword 'Chậu' within the parent category)
+    $chautrongrau_products = $productModel->searchAndFilter('Chậu', $dungculamvuon_parent_category_id, '', '', '1', '', null, null);
+
+// Tab 2: Dụng cụ chăm sóc cây
+$dungcuchamsoc_products = [];
+$dungcuchamsoc_category_id_l1 = null;
+$dungcuchamsoc_category_id_l2 = null;
+$dungcuchamsoc_category_id_l3 = null;
+
+$dcc_cat_l1 = $categoryModel->getByName('Dụng cụ chăm sóc cây');
+if ($dcc_cat_l1) {
+    $dungcuchamsoc_category_id_l1 = $dcc_cat_l1['id'];
+} else {
+    $dcc_cat_l2 = $categoryLevel2Model->getByName('Dụng cụ chăm sóc cây');
+    if ($dcc_cat_l2) {
+        $dungcuchamsoc_category_id_l2 = $dcc_cat_l2['id'];
+    } else {
+        $dcc_cat_l3 = $categoryLevel3Model->getByName('Dụng cụ chăm sóc cây');
+        if ($dcc_cat_l3) {
+            $dungcuchamsoc_category_id_l3 = $dcc_cat_l3['id'];
+        }
+    }
+}
+
+if ($dungcuchamsoc_category_id_l1) {
+    $dungcuchamsoc_products = $productModel->searchAndFilter('', $dungcuchamsoc_category_id_l1, '', '', '1', '', null, null);
+} elseif ($dungcuchamsoc_category_id_l2) {
+    $dungcuchamsoc_products = $productModel->searchAndFilter('', '', $dungcuchamsoc_category_id_l2, '', '1', '', null, null);
+} elseif ($dungcuchamsoc_category_id_l3) {
+    $dungcuchamsoc_products = $productModel->searchAndFilter('', '', '', $dungcuchamsoc_category_id_l3, '1', '', null, null);
+}
+    
+    // Tab 3: Dụng cụ làm vườn (General - All products in the parent category)
     $dungculamvuon_products = $productModel->searchAndFilter('', $dungculamvuon_parent_category_id, '', '', '1', '', null, null);
 }
 

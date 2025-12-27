@@ -86,7 +86,7 @@
                             
                             <div class="quick-view-badge" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>)" 
                                  style="position:absolute; top:10px; right:10px; z-index:10; cursor:pointer; background:rgba(255,255,255,0.8); border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">
-                                <i class="fas fa-eye text-success"></i>
+                               
                             </div>
 
                             <?php if (!empty($product['is_new'])): ?>

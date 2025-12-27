@@ -1,8 +1,9 @@
 <?php
 // FILE: /danhmuc.php
 
-// This file needs the header to define BASE_URL and start session
-include_once __DIR__ . '/app/Views/user/header.php';
+// --- LOGIC AND DATA FETCHING ---
+// All logic must come before any HTML output (which is in header.php)
+
 include_once __DIR__ . '/app/config/db.php';
 include_once __DIR__ . '/app/models/CategoryModel.php';
 include_once __DIR__ . '/app/models/CategoryLevel2Model.php';
@@ -19,6 +20,7 @@ $sub_category_id = isset($_GET['sub_id']) ? (int)$_GET['sub_id'] : 0;
 $sub_category_id2 = isset($_GET['sub_id2']) ? (int)$_GET['sub_id2'] : 0;
 
 if ($category_id <= 0) {
+    // This header call now works because it's before any HTML output
     header("Location: " . BASE_URL . "/index.php");
     exit();
 }
@@ -26,6 +28,7 @@ if ($category_id <= 0) {
 // Fetch main category details
 $main_category = $categoryModel->getById($category_id);
 if (!$main_category) {
+    // This header call now works
     header("Location: " . BASE_URL . "/index.php");
     exit();
 }
@@ -56,7 +59,8 @@ $all_products = $productModel->searchAndFilter(
 );
 
 // --- HEADER ---
-// Already included above
+// Now we include the header, which is safe because all logic is done.
+include_once __DIR__ . '/app/Views/user/header.php';
 
 ?>
 
@@ -191,7 +195,7 @@ $all_products = $productModel->searchAndFilter(
                     <div class="card h-100 product-card border-0 shadow-sm">
                         <div class="quick-view-badge" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>)" 
                              style="position:absolute; top:10px; right:10px; z-index:10; cursor:pointer; background:rgba(255,255,255,0.8); border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">
-                            <i class="fas fa-eye text-success"></i>
+                            
                         </div>
                         <div class="card-body p-2 text-center">
                              <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="product-image-container">

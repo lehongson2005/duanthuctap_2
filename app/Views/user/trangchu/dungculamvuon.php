@@ -44,7 +44,7 @@
     
     /* STYLE CHO TÙY CHỌN TRONG MODAL */
     .product-options-tools .btn {
-        border-radius: 5px !important;
+
         padding: 8px 15px;
         font-weight: bold;
     }
@@ -111,11 +111,9 @@
                             <?php while ($product = $chautrongrau_products->fetch_assoc()): ?>
                                 <div class="col">
                                     <div class="card h-100 product-card border-0 shadow-sm">
-                                        <div class="quick-view-badge" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>)" style="position:absolute; top:10px; right:10px; z-index:10; cursor:pointer; background:rgba(255,255,255,0.8); border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-eye text-success"></i></div>
+                                        <div class="quick-view-badge" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>)" style="position:absolute; top:10px; right:10px; z-index:10; cursor:pointer; background:rgba(255,255,255,0.8);  width:35px; height:35px; display:flex; align-items:center; justify-content:center;"></div>
                                         <div class="card-body p-2 text-center">
-                                            <small class="text-muted d-block" style="font-size: 0.7rem;"><?= htmlspecialchars($product['supplier'] ?? 'N/A'); ?></small>
-                                            <small class="text-success fw-bold d-block mb-2" style="font-size: 0.7rem;">SẢN PHẨM CHÍNH HÃNG</small>
-                                            <a href="<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
+                                      <a href="<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
                                                 <img src="<?= BASE_URL . '/' . htmlspecialchars($product['thumbnail'] ?? 'https://via.placeholder.com/150?text=No+Image'); ?>" class="img-fluid product-main-img" alt="<?= htmlspecialchars($product['name']); ?>">
                                                 <img src="<?= BASE_URL . '/' . htmlspecialchars($product['image_hover'] ?? $product['thumbnail'] ?? 'https://via.placeholder.com/150?text=No+Image'); ?>" class="img-fluid product-hover-img" alt="<?= htmlspecialchars($product['name']); ?> - Ảnh 2">
                                             </a>
@@ -123,7 +121,7 @@
                                             <p class="card-text mb-1" style="font-size: 0.85rem;"><a href="<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($product['name']); ?></a></p>
                                             <span class="text-danger fw-bold d-block"><?= number_format($product['price'], 0, ',', '.'); ?>₫</span>
                                         </div>
-                                        <div class="card-footer bg-white border-0 text-center p-2">
+                                        <div class="card-footer bg-white  text-center p-2">
                                             <button class="btn btn-success w-100 rounded-pill btn-sm fw-bold ajax-add-to-cart-btn" data-product-id="<?= $product['id']; ?>">
                                                 <i class="fas fa-cart-plus me-1"></i> MUA NGAY
                                             </button>
@@ -147,12 +145,10 @@
                              <?php mysqli_data_seek($dungcuchamsoc_products, 0); ?>
                             <?php while ($product = $dungcuchamsoc_products->fetch_assoc()): ?>
                                 <div class="col">
-                                    <div class="card h-100 product-card border-0 shadow-sm">
-                                        <div class="quick-view-badge" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>)" style="position:absolute; top:10px; right:10px; z-index:10; cursor:pointer; background:rgba(255,255,255,0.8); border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-eye text-success"></i></div>
+                                    <div class="card h-100 product-card  shadow-sm">
+                                        <div class="quick-view-badge" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>)" style="position:absolute; top:10px; right:10px; z-index:10; cursor:pointer; background:rgba(255,255,255,0.8); width:35px; height:35px; display:flex; align-items:center; justify-content:center;"></div>
                                         <div class="card-body p-2 text-center">
-                                            <small class="text-muted d-block" style="font-size: 0.7rem;"><?= htmlspecialchars($product['supplier'] ?? 'N/A'); ?></small>
-                                            <small class="text-success fw-bold d-block mb-2" style="font-size: 0.7rem;">SẢN PHẨM CHÍNH HÃNG</small>
-                                            <a href="<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
+                                   <a href="<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
                                                 <img src="<?= BASE_URL . '/' . htmlspecialchars($product['thumbnail'] ?? 'https://via.placeholder.com/150?text=No+Image'); ?>" class="img-fluid product-main-img" alt="<?= htmlspecialchars($product['name']); ?>">
                                                 <img src="<?= BASE_URL . '/' . htmlspecialchars($product['image_hover'] ?? $product['thumbnail'] ?? 'https://via.placeholder.com/150?text=No+Image'); ?>" class="img-fluid product-hover-img" alt="<?= htmlspecialchars($product['name']); ?> - Ảnh 2">
                                             </a>
@@ -160,7 +156,7 @@
                                             <p class="card-text mb-1" style="font-size: 0.85rem;"><a href="<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($product['name']); ?></a></p>
                                             <span class="text-danger fw-bold d-block"><?= number_format($product['price'], 0, ',', '.'); ?>₫</span>
                                         </div>
-                                        <div class="card-footer bg-white border-0 text-center p-2">
+                                        <div class="card-footer bg-white  text-center p-2">
                                             <button class="btn btn-success w-100 rounded-pill btn-sm fw-bold ajax-add-to-cart-btn" data-product-id="<?= $product['id']; ?>">
                                                 <i class="fas fa-cart-plus me-1"></i> MUA NGAY
                                             </button>
@@ -184,20 +180,18 @@
                             <?php mysqli_data_seek($dungculamvuon_products, 0); ?>
                             <?php while ($product = $dungculamvuon_products->fetch_assoc()): ?>
                                 <div class="col">
-                                    <div class="card h-100 product-card border-0 shadow-sm">
-                                        <div class="quick-view-badge" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>)" style="position:absolute; top:10px; right:10px; z-index:10; cursor:pointer; background:rgba(255,255,255,0.8); border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-eye text-success"></i></div>
+                                    <div class="card h-100 product-card  shadow-sm">
+                                        <div class="quick-view-badge" onclick="openQuickView(<?= htmlspecialchars(json_encode($product)); ?>)" style="position:absolute; top:10px; right:10px; z-index:10; cursor:pointer; background:rgba(255,255,255,0.8); width:35px; height:35px; display:flex; align-items:center; justify-content:center;"></div>
                                         <div class="card-body p-2 text-center">
-                                            <small class="text-muted d-block" style="font-size: 0.7rem;"><?= htmlspecialchars($product['supplier'] ?? 'N/A'); ?></small>
-                                            <small class="text-success fw-bold d-block mb-2" style="font-size: 0.7rem;">SẢN PHẨM CHÍNH HÃNG</small>
-                                            <a href="<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
+                                       <a href="<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
                                                 <img src="<?= BASE_URL . '/' . htmlspecialchars($product['thumbnail'] ?? 'https://via.placeholder.com/150?text=No+Image'); ?>" class="img-fluid product-main-img" alt="<?= htmlspecialchars($product['name']); ?>">
                                                 <img src="<?= BASE_URL . '/' . htmlspecialchars($product['image_hover'] ?? $product['thumbnail'] ?? 'https://via.placeholder.com/150?text=No+Image'); ?>" class="img-fluid product-hover-img" alt="<?= htmlspecialchars($product['name']); ?> - Ảnh 2">
                                             </a>
-                                            <div class="d-flex justify-content-around mb-2"><i class="fas fa-microchip text-success" title="Miễn phí tư vấn"></i><i class="fas fa-certificate text-success" title="Đảm bảo chất lượng"></i><i class="fas fa-seedling text-success" title="Dễ sử dụng"></i></div>
+                                            <div class="d-flex justify-content-around mb-2"></div>
                                             <p class="card-text mb-1" style="font-size: 0.85rem;"><a href="<?= BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?= $product['id']; ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($product['name']); ?></a></p>
                                             <span class="text-danger fw-bold d-block"><?= number_format($product['price'], 0, ',', '.'); ?>₫</span>
                                         </div>
-                                        <div class="card-footer bg-white border-0 text-center p-2">
+                                        <div class="card-footer bg-white  text-center p-2">
                                             <button class="btn btn-success w-100 rounded-pill btn-sm fw-bold ajax-add-to-cart-btn" data-product-id="<?= $product['id']; ?>">
                                                 <i class="fas fa-cart-plus me-1"></i> MUA NGAY
                                             </button>

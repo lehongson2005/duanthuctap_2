@@ -78,10 +78,7 @@
                             <?php endif; ?>
 
                             <div class="card-body p-2 text-center">
-                                <small class="text-muted d-block" style="font-size: 0.7rem;">
-                                    <?php echo htmlspecialchars(isset($product['supplier']) ? $product['supplier'] : 'N/A'); ?>
-                                </small>
-                                <small class="text-success fw-bold d-block mb-2" style="font-size: 0.7rem;">SẢN PHẨM CHÍNH HÃNG</small>
+                          
                                 
                                 <a href="<?php echo BASE_URL; ?>/app/Views/user/sanpham/chitietsanpham.php?id=<?php echo $product['id']; ?>" class="product-image-container quick-view-trigger" style="cursor: pointer;">
                                     <img src="<?php echo BASE_URL . '/' . htmlspecialchars(isset($product['thumbnail']) ? $product['thumbnail'] : 'https://via.placeholder.com/150?text=No+Image'); ?>"
@@ -140,7 +137,7 @@
                     </div>
                     <div class="col-md-7">
                         <h3 id="quickViewName">Product Name</h3>
-                        <p class="text-muted small">Mã sản phẩm: <span id="quickViewSku" class="fw-bold">N/A</span></p>
+                        <p class="text-muted small">Mã sản phẩm: <span id="quickViewSku" class="fw-bold"></span></p>
                         <p class="fs-4 fw-bold text-danger" id="quickViewPrice">0₫</p>
                         <form id="quickViewAddToCartForm">
                             <input type="hidden" name="product_id" id="quickViewProductId">
